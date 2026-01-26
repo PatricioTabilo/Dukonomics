@@ -56,8 +56,9 @@ function Dukonomics.Initialize()
   -- Initialize data storage
   Dukonomics.Data.Initialize()
 
-  -- Register events
+  -- Register event handlers
   Dukonomics.Events.Initialize()
+  Dukonomics.Mail.Initialize()
 
   Dukonomics.Debug("Initialization complete")
 end
