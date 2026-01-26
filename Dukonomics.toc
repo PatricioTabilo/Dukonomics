@@ -1,0 +1,15 @@
+## Interface: 110002
+## Title: Dukonomics
+## Notes: Auction House accounting and tracking addon. Keep records of your postings, sales, and AH activity.
+## Author: Duck
+## Version: 0.1.0
+## SavedVariables: DUKONOMICS_DATA
+## IconTexture: Interface\Icons\INV_Misc_Coin_01
+
+# Core files
+Core.lua
+Data.lua
+Events.lua
+
+# UI files
+UI\MainFrame.xml

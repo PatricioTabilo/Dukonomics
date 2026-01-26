@@ -1,0 +1,23 @@
+# WoW AddOn Development
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+
+# Packager files
+.release/
+*.zip
+
+# Debug logs
+debug.log
