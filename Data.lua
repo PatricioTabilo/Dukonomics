@@ -30,44 +30,56 @@ end
 
 -- Add posting to logs
 function Dukonomics.Data.AddPosting(posting)
-  -- Add metadata
   posting.source = GetPlayerSource()
-  posting.timestamp = time()
-
-  -- Generate temporary ID until we get the real auctionID
-  posting.tempID = posting.timestamp .. "_" .. posting.source.character
-
   table.insert(DUKONOMICS_DATA.postings, posting)
-
-  Dukonomics.Debug("Added posting: " .. (posting.itemName or "unknown") .. " x" .. (posting.count or 0))
+  Dukonomics.Debug("Posting saved: " .. (posting.itemName or "?") .. " x" .. posting.count)
 end
 
--- Update posting by auctionID
-function Dukonomics.Data.UpdatePostingByAuctionID(auctionID, updates)
-  for _, posting in ipairs(DUKONOMICS_DATA.postings) do
-    if posting.auctionID == auctionID then
-      for key, value in pairs(updates) do
-        posting[key] = value
-      end
-      Dukonomics.Debug("Updated posting auctionID " .. auctionID .. ": status=" .. (updates.status or "?"))
-      return true
-    end
-  end
-  return false
+-- Add purchase to logs
+function Dukonomics.Data.AddPurchase(purchase)
+  purchase.source = GetPlayerSource()
+  table.insert(DUKONOMICS_DATA.purchases, purchase)
+  Dukonomics.Debug("Purchase saved: " .. (purchase.itemName or "?") .. " x" .. purchase.count)
 end
 
--- Update posting by tempID (for when we don't have auctionID yet)
-function Dukonomics.Data.UpdatePostingByTempID(tempID, updates)
+-- Find active posting by item/price/count (for mail matching of sales)
+function Dukonomics.Data.FindActivePosting(itemName, price, count)
   for _, posting in ipairs(DUKONOMICS_DATA.postings) do
-    if posting.tempID == tempID then
-      for key, value in pairs(updates) do
-        posting[key] = value
-      end
-      Dukonomics.Debug("Updated posting tempID " .. tempID)
-      return true
+    if posting.status == "active" and
+       posting.itemName == itemName and
+       posting.price == price and
+       posting.count == count then
+      return posting
     end
   end
-  return false
+  return nil
+end
+
+-- Find posting for returned items (cancelled/expired) - only active
+function Dukonomics.Data.FindActivePostingByItem(itemName, count)
+  for _, posting in ipairs(DUKONOMICS_DATA.postings) do
+    if posting.status == "active" and
+       posting.itemName == itemName and
+       posting.count == count then
+      return posting
+    end
+  end
+  return nil
+end
+
+-- Mark posting as sold (by synthetic ID or auctionID)
+function Dukonomics.Data.MarkPostingAsSold(posting, soldPrice)
+  posting.status = "sold"
+  posting.soldAt = time()
+  posting.soldPrice = soldPrice or posting.price
+
+  -- Calculate profit
+  local revenue = posting.soldPrice
+  local cost = posting.deposit
+  posting.profit = revenue - cost
+
+  Dukonomics.Debug("Marked as sold: " .. (posting.itemName or "?") .. " - Profit: " .. posting.profit .. "g")
+  return true
 end
 
 -- Get postings within time range
