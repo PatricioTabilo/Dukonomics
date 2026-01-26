@@ -1,4 +1,4 @@
-## Interface: 110002
+## Interface: 120000
 ## Title: Dukonomics
 ## Notes: Auction House accounting and tracking addon. Keep records of your postings, sales, and AH activity.
 ## Author: Duck
