@@ -160,6 +160,11 @@ function Dukonomics.UI.DataTable.Create(parent)
       row.cells.qty:SetText(posting.count or 1)
       row.cells.qty:SetTextColor(1, 1, 1)
 
+      -- Unit Price
+      local unitPrice = posting.price or 0
+      row.cells.unitPrice:SetText(Dukonomics.UI.Formatting.FormatMoney(unitPrice))
+      row.cells.unitPrice:SetTextColor(1, 1, 1)
+
       -- Total with coin icons
       local total = (posting.price or 0) * (posting.count or 1)
       row.cells.total:SetText(Dukonomics.UI.Formatting.FormatMoney(total))

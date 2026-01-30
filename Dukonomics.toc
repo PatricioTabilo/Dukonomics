@@ -1,29 +1,40 @@
 ## Interface: 120000
 ## Title: Dukonomics
-## Notes: Auction House accounting and tracking addon. Keep records of your postings, sales, and AH activity.
+## Notes: Auction House accounting and tracking addon
 ## Author: Duck
 ## Version: 0.1.0
-## SavedVariables: DUKONOMICS_DATA
+## SavedVariables: DUKONOMICS_DATA, DUKONOMICS_DEBUG_DATA, DUKONOMICS_CONFIG
 ## IconTexture: Interface\Icons\INV_Misc_Coin_01
 
-# Core files
+# Core
 Core.lua
-Logger.lua
-Localization.lua
-Data.lua
-SalesService.lua
-Events.lua
-models/Mail.lua
-repositories/MailCacheRepository.lua
-Mail.lua
+core\Logger.lua
+core\Localization.lua
+
+# Data Layer
+data\Repository.lua
+data\MailData.lua
+data\MailCache.lua
+
+# Services
+services\SalesService.lua
+
+# Event Handlers
+handlers\AuctionHandler.lua
+handlers\MailHandler.lua
+
+# Testing
+testing\TestRunner.lua
+
+# Commands
 Commands.lua
 
-# UI files
+# UI
+UI\Config.lua
+UI\Formatting.lua
 UI\MainFrame.xml
 UI\MainFrame.lua
 UI\components\DataTable.lua
 UI\components\FilterBar.lua
 UI\components\SummaryBar.lua
 UI\components\TabBar.lua
-UI\utils\Config.lua
-UI\utils\Formatting.lua

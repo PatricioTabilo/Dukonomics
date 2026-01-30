@@ -2,8 +2,8 @@
   <!-- Dukonomics Main UI Frame -->
 
   <!-- Utils (helpers and config) -->
-  <Script file="utils\Config.lua"/>
-  <Script file="utils\Formatting.lua"/>
+  <Script file="Config.lua"/>
+  <Script file="Formatting.lua"/>
 
   <!-- Components (reutilizables) -->
   <Script file="components\FilterBar.lua"/>

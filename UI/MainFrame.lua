@@ -86,7 +86,8 @@ local dataTable = Dukonomics.UI.DataTable.Create(tableAnchor)
 
 local function GetFilteredData()
   local data = {}
-  if not DUKONOMICS_DATA then
+  local dataStore = Dukonomics.Data.GetDataStore()
+  if not dataStore then
     return data
   end
 
@@ -107,115 +108,121 @@ local function GetFilteredData()
 
   -- First pass: filter by search, type, time, status, character
   -- Add postings (sales)
-  if (filters.type == "all" or filters.type == "sales") and DUKONOMICS_DATA.postings then
-    for _, posting in ipairs(DUKONOMICS_DATA.postings) do
-      local match = true
+  if (filters.type == "all" or filters.type == "sales") then
+    local dataStore = Dukonomics.Data.GetDataStore()
+    if dataStore.postings then
+      for _, posting in ipairs(dataStore.postings) do
+        local match = true
 
-      -- Search filter
-      if searchText ~= "" then
-        local itemName = (posting.itemName or ""):lower()
-        if not itemName:find(searchText, 1, true) then
-          match = false
-        end
-      end
-
-      -- Time filter
-      if match and filters.timeRange ~= "all" then
-        if (posting.timestamp or 0) < timeCutoff then
-          match = false
-        end
-      end
-
-      -- Status filter
-      if match and filters.status ~= "all" then
-  local isPendingCancel = posting.pendingRemovalType == "cancelled"
-        if filters.status == "cancelled" then
-          if posting.status ~= "cancelled" and not isPendingCancel then
-            match = false
-          end
-        elseif filters.status == "active" then
-          if posting.status ~= "active" or isPendingCancel then
-            match = false
-          end
-        else
-          if posting.status ~= filters.status then
+        -- Search filter
+        if searchText ~= "" then
+          local itemName = (posting.itemName or ""):lower()
+          if not itemName:find(searchText, 1, true) then
             match = false
           end
         end
-      end
 
-      -- Character filter (format: "Character-Realm")
-      if match and filters.character ~= "all" then
-        if not posting.source then
-          match = false
-        else
-          local charKey = posting.source.character .. "-" .. posting.source.realm
-          if charKey ~= filters.character then
+        -- Time filter
+        if match and filters.timeRange ~= "all" then
+          if (posting.timestamp or 0) < timeCutoff then
             match = false
           end
         end
-      end
 
-      if match then
-        -- Add type marker
-        local item = {}
-        for k, v in pairs(posting) do
-          item[k] = v
+        -- Status filter
+        if match and filters.status ~= "all" then
+          local isPendingCancel = posting.pendingRemovalType == "cancelled"
+          if filters.status == "cancelled" then
+            if posting.status ~= "cancelled" and not isPendingCancel then
+              match = false
+            end
+          elseif filters.status == "active" then
+            if posting.status ~= "active" or isPendingCancel then
+              match = false
+            end
+          else
+            if posting.status ~= filters.status then
+              match = false
+            end
+          end
         end
-        item._type = "sale"
-        table.insert(filtered, item)
+
+        -- Character filter (format: "Character-Realm")
+        if match and filters.character ~= "all" then
+          if not posting.source then
+            match = false
+          else
+            local charKey = posting.source.character .. "-" .. posting.source.realm
+            if charKey ~= filters.character then
+              match = false
+            end
+          end
+        end
+
+        if match then
+          -- Add type marker
+          local item = {}
+          for k, v in pairs(posting) do
+            item[k] = v
+          end
+          item._type = "sale"
+          table.insert(filtered, item)
+        end
       end
     end
   end
 
   -- Add purchases
-  if (filters.type == "all" or filters.type == "purchases") and DUKONOMICS_DATA.purchases then
-    for _, purchase in ipairs(DUKONOMICS_DATA.purchases) do
-      local match = true
+  if (filters.type == "all" or filters.type == "purchases") then
+    local dataStore = Dukonomics.Data.GetDataStore()
+    if dataStore.purchases then
+      for _, purchase in ipairs(dataStore.purchases) do
+        local match = true
 
-      -- Search filter
-      if searchText ~= "" then
-        local itemName = (purchase.itemName or ""):lower()
-        if not itemName:find(searchText, 1, true) then
-          match = false
-        end
-      end
-
-      -- Time filter
-      if match and filters.timeRange ~= "all" then
-        if (purchase.timestamp or 0) < timeCutoff then
-          match = false
-        end
-      end
-
-      -- Status filter (purchases always have status "purchased")
-      if match and filters.status ~= "all" then
-        if filters.status ~= "purchased" then
-          match = false
-        end
-      end
-
-      -- Character filter (format: "Character-Realm")
-      if match and filters.character ~= "all" then
-        if not purchase.source then
-          match = false
-        else
-          local charKey = purchase.source.character .. "-" .. purchase.source.realm
-          if charKey ~= filters.character then
+        -- Search filter
+        if searchText ~= "" then
+          local itemName = (purchase.itemName or ""):lower()
+          if not itemName:find(searchText, 1, true) then
             match = false
           end
         end
-      end
 
-      if match then
-        -- Add type marker and normalize structure
-        local item = {}
-        for k, v in pairs(purchase) do
-          item[k] = v
+        -- Time filter
+        if match and filters.timeRange ~= "all" then
+          if (purchase.timestamp or 0) < timeCutoff then
+            match = false
+          end
         end
-        item._type = "purchase"
-        item.status = "purchased"  -- Add status for purchases
-        table.insert(filtered, item)
+
+        -- Status filter (purchases always have status "purchased")
+        if match and filters.status ~= "all" then
+          if filters.status ~= "purchased" then
+            match = false
+          end
+        end
+
+        -- Character filter (format: "Character-Realm")
+        if match and filters.character ~= "all" then
+          if not purchase.source then
+            match = false
+          else
+            local charKey = purchase.source.character .. "-" .. purchase.source.realm
+            if charKey ~= filters.character then
+              match = false
+            end
+          end
+        end
+
+        if match then
+          -- Add type marker and normalize structure
+          local item = {}
+          for k, v in pairs(purchase) do
+            item[k] = v
+          end
+          item._type = "purchase"
+          item.status = "purchased"  -- Add status for purchases
+          table.insert(filtered, item)
+        end
       end
     end
   end

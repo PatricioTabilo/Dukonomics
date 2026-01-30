@@ -1,19 +1,18 @@
--- Dukonomics Logger
--- Centralized logging utilities
-
 Dukonomics.Logger = {}
 
+local PREFIX = "|cFF00D4FFDukonomics:|r "
+local DEBUG_PREFIX = "|cFF808080[Dukonomics]|r "
+
 function Dukonomics.Logger.print(msg)
-  print("|cFF00D4FFDukonomics:|r " .. msg)
+  print(PREFIX .. msg)
 end
 
 function Dukonomics.Logger.debug(msg)
   if Dukonomics.DebugMode then
-    print("|cFF808080[Dukonomics Debug]|r " .. msg)
+    print(DEBUG_PREFIX .. msg)
   end
 end
 
--- Log a table's contents for debugging
 function Dukonomics.Logger.table(tbl, name)
   if not Dukonomics.DebugMode then return end
   if not tbl then
@@ -27,7 +26,6 @@ function Dukonomics.Logger.table(tbl, name)
   Dukonomics.Logger.debug("}")
 end
 
--- Log a table's contents in a single line for debugging
 function Dukonomics.Logger.debugTable(tbl, name)
   if not Dukonomics.DebugMode then return end
   if not tbl then

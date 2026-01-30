@@ -1,108 +1,87 @@
--- Dukonomics: Slash Commands
--- Manejo de comandos /dukonomics y /duk
+-- Slash command handling
 
 function Dukonomics.ToggleDebug()
   Dukonomics.DebugMode = not Dukonomics.DebugMode
-  DUKONOMICS_DATA.debugMode = Dukonomics.DebugMode
-  Dukonomics.Logger.print("Debug mode: " .. (Dukonomics.DebugMode and "ON" or "OFF"))
+  DUKONOMICS_CONFIG.debugMode = Dukonomics.DebugMode
+
+  local dataType = Dukonomics.DebugMode and "DEBUG" or "PRODUCTION"
+  Dukonomics.Logger.print("Debug mode: " .. (Dukonomics.DebugMode and "ON" or "OFF") .. " (using " .. dataType .. " data)")
 end
 
--- Generate test data
-function Dukonomics.GenerateTestData()
-  local now = time()
-  local items = {
-    {name = "Poción de maná superior", id = 13444, price = 5000},
-    {name = "Aceite de amonita de fuego", id = 212663, price = 200},
-    {name = "Aceite para curtido ámbar", id = 212664, price = 150},
-    {name = "Agua burbujeante", id = 159, price = 50},
-    {name = "Bolsa de tejido crepuscular", id = 194019, price = 298000},
-    {name = "Esencia de tierra", id = 7076, price = 1500},
-    {name = "Esencia de fuego", id = 7077, price = 2000},
-    {name = "Mineral de hierro", id = 2772, price = 800},
-  }
-
-  local statuses = {"active", "sold", "cancelled", "expired"}
-  local source = {
-    character = UnitName("player"),
-    realm = GetRealmName(),
-    faction = UnitFactionGroup("player")
-  }
-
-  -- Generate 50 random postings (using new stack-based system)
-  for i = 1, 50 do
-    local item = items[math.random(#items)]
-    local status = statuses[math.random(#statuses)]
-    local quantity = math.random(1, 20)  -- Stack size
-    local ageHours = math.random(1, 168) -- 1 hour to 7 days
-    local timestamp = now - (ageHours * 3600)
-
-    table.insert(DUKONOMICS_DATA.postings, {
-      itemID = item.id,
-      itemLink = "|cffffffff|Hitem:" .. item.id .. "::::::::70:::::|h[" .. item.name .. "]|h|r",
-      itemName = item.name,
-      buyout = item.price,
-      bid = math.floor(item.price * 0.8),
-      count = quantity,  -- Full stack quantity
-      deposit = math.floor(item.price * 0.05 * quantity),  -- Total deposit
-      duration = math.random(1, 3),
-      price = item.price,
-      timestamp = timestamp,
-      status = status,
-      source = source
-    })
+function Dukonomics.SetDebugMode(enabled)
+  if Dukonomics.DebugMode ~= enabled then
+    Dukonomics.DebugMode = enabled
+    DUKONOMICS_CONFIG.debugMode = Dukonomics.DebugMode
   end
 
-  -- Generate 20 random purchases
-  for i = 1, 20 do
-    local item = items[math.random(#items)]
-    local quantity = math.random(1, 5)
-    local ageHours = math.random(1, 168)
-    local timestamp = now - (ageHours * 3600)
-
-    table.insert(DUKONOMICS_DATA.purchases, {
-      itemID = item.id,
-      itemLink = "|cffffffff|Hitem:" .. item.id .. "::::::::70:::::|h[" .. item.name .. "]|h|r",
-      itemName = item.name,
-      price = item.price,
-      count = quantity,
-      timestamp = timestamp,
-      source = source
-    })
-  end
+  local dataType = Dukonomics.DebugMode and "DEBUG" or "PRODUCTION"
+  Dukonomics.Logger.print("Debug mode: " .. (Dukonomics.DebugMode and "ON" or "OFF") .. " (using " .. dataType .. " data)")
 end
 
--- Slash command registration
+function Dukonomics.ShowDebugStatus()
+  local data = Dukonomics.Data.GetDataStore()
+  local dataType = Dukonomics.DebugMode and "DEBUG" or "PRODUCTION"
+  local postingCount = data.postings and #data.postings or 0
+  local purchaseCount = data.purchases and #data.purchases or 0
+
+  Dukonomics.Logger.print("Debug mode: " .. (Dukonomics.DebugMode and "|cff00ff00ON|r" or "|cffff0000OFF|r") .. " (using " .. dataType .. " data)")
+  Dukonomics.Logger.print("Current data: " .. postingCount .. " postings, " .. purchaseCount .. " purchases")
+end
+
 SLASH_DUKONOMICS1 = "/dukonomics"
 SLASH_DUKONOMICS2 = "/duk"
 
 SlashCmdList["DUKONOMICS"] = function(msg)
-  local command, arg = msg:match("^(%S*)%s*(.-)$")
+  local cmd, arg = msg:match("^(%S*)%s*(.-)$")
 
-  if command == "clear" then
-    -- Clear old data
-    local days = tonumber(arg) or 30
-    Dukonomics.Data.ClearOldData(days)
+  if cmd == "clear" then
+    Dukonomics.Data.ClearOldData(tonumber(arg) or 30)
 
-  elseif command == "testdata" then
-    -- Generate test data
-    Dukonomics.GenerateTestData()
-    Dukonomics.Logger.print("Datos de prueba generados")
+  elseif cmd == "testdata" then
+    Dukonomics.Testing.GenerateRandomData()
 
-  elseif command == "debug" then
-    -- Toggle debug mode
-    Dukonomics.ToggleDebug()
+  elseif cmd == "simular" or cmd == "sim" then
+    Dukonomics.Testing.SimulateScenarios()
 
-  elseif command == "help" then
-    -- Show help
-    Dukonomics.Logger.print("Comandos disponibles:")
-    Dukonomics.Logger.print("/duk - Abrir ventana principal")
-    Dukonomics.Logger.print("/duk clear [días] - Limpiar postings antiguos (default: 30 días)")
-    Dukonomics.Logger.print("/duk testdata - Generar datos de prueba")
-    Dukonomics.Logger.print("/duk debug - Toggle debug mode")
-    Dukonomics.Logger.print("/duk help - Mostrar esta ayuda")
+  elseif cmd == "status" or cmd == "st" then
+    Dukonomics.Testing.ShowStatus()
+
+  elseif cmd == "test" then
+    Dukonomics.Testing.RunTests(arg ~= "" and arg or nil)
+
+  elseif cmd == "expected" or cmd == "expect" then
+    Dukonomics.Testing.ShowExpected()
+
+  elseif cmd == "debug" then
+    if arg == "" then
+      Dukonomics.ToggleDebug()
+    elseif arg == "on" then
+      Dukonomics.SetDebugMode(true)
+    elseif arg == "off" then
+      Dukonomics.SetDebugMode(false)
+    elseif arg == "status" then
+      Dukonomics.ShowDebugStatus()
+    else
+      Dukonomics.Logger.print("Usage: /duk debug [on|off|status]")
+      Dukonomics.Logger.print("  /duk debug - Toggle debug mode")
+      Dukonomics.Logger.print("  /duk debug on - Enable debug mode")
+      Dukonomics.Logger.print("  /duk debug off - Disable debug mode")
+      Dukonomics.Logger.print("  /duk debug status - Show debug status")
+    end
+
+  elseif cmd == "help" then
+    Dukonomics.Logger.print("Commands:")
+    Dukonomics.Logger.print("/duk - Open main window")
+    Dukonomics.Logger.print("/duk clear [days] - Clear old data (default: 30)")
+    Dukonomics.Logger.print("/duk debug [on|off|status] - Debug mode (uses separate data store)")
+    Dukonomics.Logger.print("")
+    Dukonomics.Logger.print("|cffff00ff--- Testing ---|r")
+    Dukonomics.Logger.print("/duk sim - Create test postings")
+    Dukonomics.Logger.print("/duk test [type] - Run tests (sale/purchase/cancel/expired/todo)")
+    Dukonomics.Logger.print("/duk status - Show posting status")
+    Dukonomics.Logger.print("/duk expected - Show expected results")
 
   else
-    -- Open main UI (default action)
     Dukonomics.UI.Toggle()
   end
 end

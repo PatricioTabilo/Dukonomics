@@ -1,10 +1,8 @@
--- Dukonomics: UI Configuration
--- Constantes de colores, tamaños y columnas
+-- UI Configuration: colors, dimensions, columns
 
 Dukonomics.UI = Dukonomics.UI or {}
 Dukonomics.UI.Config = {}
 
--- Colors (estilo WoW)
 Dukonomics.UI.Config.COLORS = {
   BG = {0.1, 0.1, 0.1, 0.95},
   TITLE_BG = {0.15, 0.12, 0.08, 1},
@@ -28,9 +26,8 @@ Dukonomics.UI.Config.COLORS = {
   }
 }
 
--- Layout dimensions
 Dukonomics.UI.Config.SIZES = {
-  FRAME_WIDTH = 1100,
+  FRAME_WIDTH = 1250,
   FRAME_HEIGHT = 550,
   ROW_HEIGHT = 28,
   HEADER_HEIGHT = 28,
@@ -38,11 +35,11 @@ Dukonomics.UI.Config.SIZES = {
   FILTER_HEIGHT = 32,
 }
 
--- Column configuration
 Dukonomics.UI.Config.COLUMNS = {
   {key = "icon", width = 32},
   {key = "item", name = "Item", width = 250},
   {key = "qty", name = "Quantity", width = 80, align = "CENTER"},
+  {key = "unitPrice", name = "Unit Price", width = 120, align = "RIGHT"},
   {key = "total", name = "Total", width = 140, align = "RIGHT"},
   {key = "status", name = "Status", width = 90, align = "CENTER"},
   {key = "char", name = "Character", width = 140},
