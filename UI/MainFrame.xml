@@ -1,7 +1,16 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
   <!-- Dukonomics Main UI Frame -->
-  <!-- TODO: Implement full UI in later phases -->
 
+  <!-- Utils (helpers and config) -->
+  <Script file="utils\Config.lua"/>
+  <Script file="utils\Formatting.lua"/>
+
+  <!-- Components (reutilizables) -->
+  <Script file="components\FilterBar.lua"/>
+  <Script file="components\DataTable.lua"/>
+  <Script file="components\SummaryBar.lua"/>
+
+  <!-- Main Frame (orquestador) -->
   <Script file="MainFrame.lua"/>
 
 </Ui>

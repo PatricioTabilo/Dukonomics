@@ -8,9 +8,22 @@
 
 # Core files
 Core.lua
+Logger.lua
+Localization.lua
 Data.lua
+SalesService.lua
 Events.lua
+models/Mail.lua
+repositories/MailCacheRepository.lua
 Mail.lua
+Commands.lua
 
 # UI files
 UI\MainFrame.xml
+UI\MainFrame.lua
+UI\components\DataTable.lua
+UI\components\FilterBar.lua
+UI\components\SummaryBar.lua
+UI\components\TabBar.lua
+UI\utils\Config.lua
+UI\utils\Formatting.lua

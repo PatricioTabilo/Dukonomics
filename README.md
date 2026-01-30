@@ -32,26 +32,30 @@ Copy the `Dukonomics` folder to your WoW `Interface/AddOns` directory.
 
 ## Development Status
 
-**Phase 1: Foundation** ✅ In Progress
+**Phase 1: Foundation** ✅ Completed
+
 - [x] Project structure
 - [x] Core initialization
 - [x] Data persistence (SavedVariables)
 - [x] Event handling system
-- [ ] Git repository setup
-- [ ] Symlink to WoW
+- [x] Git repository setup
+- [x] Symlink to WoW
 
 **Phase 2: Backend** 🔄 Next
+
 - [ ] Auction tracking events
 - [ ] Mail inbox monitoring
 - [ ] Status management
 
 **Phase 3: UI** 📋 Planned
+
 - [ ] Main frame design (Peterodox-inspired)
 - [ ] Data table view
 - [ ] Filters
 - [ ] Statistics panel
 
 **Phase 4: Polish** 📋 Planned
+
 - [ ] Testing
 - [ ] Documentation
 - [ ] Screenshots
