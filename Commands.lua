@@ -38,18 +38,38 @@ SlashCmdList["DUKONOMICS"] = function(msg)
     Dukonomics.Data.ClearOldData(tonumber(arg) or 30)
 
   elseif cmd == "testdata" then
+    if not Dukonomics.DebugMode then
+      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
+      return
+    end
     Dukonomics.Testing.GenerateRandomData()
 
   elseif cmd == "simular" or cmd == "sim" then
+    if not Dukonomics.DebugMode then
+      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
+      return
+    end
     Dukonomics.Testing.SimulateScenarios()
 
   elseif cmd == "status" or cmd == "st" then
+    if not Dukonomics.DebugMode then
+      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
+      return
+    end
     Dukonomics.Testing.ShowStatus()
 
   elseif cmd == "test" then
+    if not Dukonomics.DebugMode then
+      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
+      return
+    end
     Dukonomics.Testing.RunTests(arg ~= "" and arg or nil)
 
   elseif cmd == "expected" or cmd == "expect" then
+    if not Dukonomics.DebugMode then
+      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
+      return
+    end
     Dukonomics.Testing.ShowExpected()
 
   elseif cmd == "debug" then
@@ -75,7 +95,7 @@ SlashCmdList["DUKONOMICS"] = function(msg)
     Dukonomics.Logger.print("/duk clear [days] - Clear old data (default: 30)")
     Dukonomics.Logger.print("/duk debug [on|off|status] - Debug mode (uses separate data store)")
     Dukonomics.Logger.print("")
-    Dukonomics.Logger.print("|cffff00ff--- Testing ---|r")
+    Dukonomics.Logger.print("|cffff00ff--- Testing ---|r (requires debug mode)")
     Dukonomics.Logger.print("/duk sim - Create test postings")
     Dukonomics.Logger.print("/duk test [type] - Run tests (sale/purchase/cancel/expired/todo)")
     Dukonomics.Logger.print("/duk status - Show posting status")
