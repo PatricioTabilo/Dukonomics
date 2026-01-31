@@ -21,9 +21,9 @@ function Dukonomics.ConfigRepository.Initialize()
   -- Ensure config exists
   if not DUKONOMICS_CONFIG then
     DUKONOMICS_CONFIG = {}
-    Dukonomics.Logger.print("|cffff0000[Config] Created NEW config (first time)|r")
+    Dukonomics.Logger.debug("|cffff0000[Config] Created NEW config (first time)|r")
   else
-    Dukonomics.Logger.print("|cff00ff00[Config] Loaded EXISTING config|r")
+    Dukonomics.Logger.debug("|cff00ff00[Config] Loaded EXISTING config|r")
   end
 
   -- Apply defaults safely
@@ -112,5 +112,5 @@ end
 
 function Dukonomics.ConfigRepository.SetCacheFilters(enabled)
   Dukonomics.ConfigRepository.Set("cacheFilters", enabled)
-  Dukonomics.Logger.print("|cff00ffff[Config] Cache filters SET to: " .. tostring(enabled) .. "|r")
+  Dukonomics.Logger.debug("|cff00ffff[Config] Cache filters SET to: " .. tostring(enabled) .. "|r")
 end

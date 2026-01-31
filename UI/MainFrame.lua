@@ -262,7 +262,7 @@ frame:SetScript("OnShow", function(self)
 end)
 
 Dukonomics.MainFrame = frame
-Dukonomics.Logger.print("UI Initialized")
+Dukonomics.Logger.debug("UI Initialized")
 end
 
 local function LogFilterCacheState()
@@ -270,9 +270,9 @@ local function LogFilterCacheState()
   local cached = Dukonomics.ConfigRepository.GetCachedFilters()
   local current = filterBar:GetFilters()
 
-  Dukonomics.Logger.print("Filter cache enabled: " .. tostring(cacheEnabled))
-  Dukonomics.Logger.print("Cached filters: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
-  Dukonomics.Logger.print("Active filters: type=" .. tostring(current.type) .. ", timeRange=" .. tostring(current.timeRange) .. ", status=" .. tostring(current.status) .. ", character=" .. tostring(current.character))
+  Dukonomics.Logger.debug("Filter cache enabled: " .. tostring(cacheEnabled))
+  Dukonomics.Logger.debug("Cached filters: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
+  Dukonomics.Logger.debug("Active filters: type=" .. tostring(current.type) .. ", timeRange=" .. tostring(current.timeRange) .. ", status=" .. tostring(current.status) .. ", character=" .. tostring(current.character))
 end
 
 -----------------------------------------------------------

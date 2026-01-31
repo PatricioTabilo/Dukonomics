@@ -24,10 +24,10 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
 
   -- Load cached filters if option is enabled
   local cacheEnabled = Dukonomics.ConfigRepository.IsCacheFiltersEnabled()
-  Dukonomics.Logger.print("[Dukonomics] Filter cache enabled: " .. tostring(cacheEnabled))
+  Dukonomics.Logger.debug("[Dukonomics] Filter cache enabled: " .. tostring(cacheEnabled))
   if cacheEnabled then
     local cached = Dukonomics.ConfigRepository.GetCachedFilters()
-    Dukonomics.Logger.print("[Dukonomics] Cached filters loaded: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
+    Dukonomics.Logger.debug("[Dukonomics] Cached filters loaded: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
     filters.type = cached.type or filters.type
     filters.timeRange = cached.timeRange or filters.timeRange
     filters.status = cached.status or filters.status

@@ -21,13 +21,13 @@ function Dukonomics.Initialize()
   if Dukonomics.ConfigRepository.IsWelcomeMessageEnabled() then
     -- Get version from TOC file (C_AddOns.GetAddOnMetadata for modern WoW, fallback to old API)
     local version = (C_AddOns and C_AddOns.GetAddOnMetadata("Dukonomics", "Version")) or GetAddOnMetadata and GetAddOnMetadata("Dukonomics", "Version") or "0.4.0"
-    Dukonomics.Logger.print("v" .. version .. " loaded - Thanks for using Dukonomics! Type /duk for options.")
+    Dukonomics.Logger.print("made with <3 thanks for using it! (v" .. version .. ")")
   end
 
   Dukonomics.AuctionHandler.Initialize()
   Dukonomics.MailHandler.Initialize()
 
-  Dukonomics.Logger.print("Initialization complete")
+  Dukonomics.Logger.debug("Initialization complete")
 end
 
 local frame = CreateFrame("Frame")
