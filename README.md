@@ -1,85 +1,34 @@
-# Dukonomics
+# <img src="https://media.forgecdn.net/attachments/description/null/description_2c0d7082-88ae-4bce-b64c-11af1a8f35ac.png" width="48" height="48" align="center"/> Dukonomics
 
-Auction House accounting and tracking addon for World of Warcraft.
+> [!IMPORTANT]
+> **Beta Release (v0.8.0)**
+> Dukonomics is in public beta. While stable and tracking correctly, we are actively refining the experience. Feedback on CurseForge or GitHub is very welcome!
 
-## Features (In Development)
+**Your gold history, simplified.**
 
-- 📊 Track all your AH postings with real-time status updates
-- 💰 Record sales, cancellations, and expirations
-- 👤 Multi-character support
-- 🔍 Filter by status (Active, Sold, Expired, Cancelled)
-- ⏱️ Countdown timers for active auctions
-- 📈 Statistics and profit tracking
+**Stop guessing where your gold went.**
+Dukonomics tracks everything automatically. It records every sale, purchase, and cancellation to show you exactly what matters: your real profit. It also monitors your **active auctions across all characters**, so you always know who has items listed and who needs to restock.
 
-## Installation (Development)
+To ensure accuracy, it validates data via your mailbox to capture what the standard API misses. No configuration needed—just the insights you need to make more gold.
 
-### Using Symlink (Recommended for Development)
+![Dukonomics Screenshot](Assets/screenshot.png)
 
-```bash
-# Create symlink from project to WoW AddOns folder
-ln -s /home/duck/Development/Dukonomics \
-  "/home/duck/.local/share/Steam/steamapps/compatdata/3159493747/pfx/drive_c/Program Files (x86)/World of Warcraft/_retail_/Interface/AddOns/Dukonomics"
-```
+## See your history clearly
 
-### Manual Copy
+Dukonomics organizes your transaction history into a **unified accounting overview** that supports:
 
-Copy the `Dukonomics` folder to your WoW `Interface/AddOns` directory.
+- **True Profit**: Automatically tracks expenses against earnings to show what you really made.
+- **Active Auctions**: Monitor active postings across your whole account. Know at a glance which characters have items listed and which ones are empty.
+- **Account-Wide View**: See data across all your characters or filter for specific alts.
+- **Smart Filters**: Search by item or check specific timeframes (24h, 7 Days, Month, All Time). You can also enable **Remember filter settings** to keep your preferences across all characters and sessions.
 
-## Usage
+## Native by Design
 
-- `/dukonomics` or `/duk` - Open main UI (coming soon)
-- `/duk debug` - Toggle debug mode
+An accounting tool shouldn't feel like a spreadsheet overlay. Dukonomics is built to look and feel like a standard part of the World of Warcraft interface—lightweight, unobtrusive, and instantly familiar.
 
-## Development Status
+## Getting Started
 
-**Phase 1: Foundation** ✅ Completed
+No configuration needed. Just install and play.
 
-- [x] Project structure
-- [x] Core initialization
-- [x] Data persistence (SavedVariables)
-- [x] Event handling system
-- [x] Git repository setup
-- [x] Symlink to WoW
-
-**Phase 2: Backend** 🔄 Next
-
-- [ ] Auction tracking events
-- [ ] Mail inbox monitoring
-- [ ] Status management
-
-**Phase 3: UI** 📋 Planned
-
-- [ ] Main frame design (Peterodox-inspired)
-- [ ] Data table view
-- [ ] Filters
-- [ ] Statistics panel
-
-**Phase 4: Polish** 📋 Planned
-
-- [ ] Testing
-- [ ] Documentation
-- [ ] Screenshots
-
-## Technical Details
-
-- **Interface Version:** 110002 (The War Within)
-- **Saved Variables:** `DUKONOMICS_DATA`
-- **Events Used:**
-  - `AUCTION_HOUSE_AUCTION_CREATED` - Capture auctionID when posting
-  - `AUCTION_HOUSE_PURCHASE_COMPLETED` - Detect sales
-  - `AUCTION_CANCELED` - Detect cancellations
-  - `OWNED_AUCTIONS_UPDATED` - Sync auction status
-
-## Design Philosophy
-
-**Focus:** Pure accounting and tracking - no active tools or market manipulation
-
-**Inspiration:** Clean, elegant UI following patterns from [Peterodox's addons](https://www.curseforge.com/members/peterodox/projects)
-
-## License
-
-MIT License - See LICENSE file
-
-## Author
-
-Duck - Making gold tracking beautiful since 2026
+- **Access**: Click the minimap button or type `/dukonomics` to toggle the main window.
+- **Config**: Right-click the minimap button to open options.
