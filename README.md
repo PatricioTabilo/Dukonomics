@@ -1,4 +1,4 @@
-# <img src="https://media.forgecdn.net/attachments/description/null/description_2c0d7082-88ae-4bce-b64c-11af1a8f35ac.png" width="48" height="48" align="center"/> Dukonomics
+<img src="https://media.forgecdn.net/attachments/description/null/description_2c0d7082-88ae-4bce-b64c-11af1a8f35ac.png" width="800" height="200" align="center"/>
 
 > [!IMPORTANT]
 > **Beta Release (v0.8.0)**
@@ -11,7 +11,7 @@ Dukonomics tracks everything automatically. It records every sale, purchase, and
 
 To ensure accuracy, it validates data via your mailbox to capture what the standard API misses. No configuration needed—just the insights you need to make more gold.
 
-![Dukonomics Screenshot](Assets/screenshot.png)
+<p align="center"><img src="https://media.forgecdn.net/attachments/1506/183/captura-desde-2026-01-31-11-47-44-png.png" width="900" alt="Dukonomics Screenshot"/></p>
 
 ## See your history clearly
 
