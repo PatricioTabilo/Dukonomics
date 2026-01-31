@@ -4,12 +4,25 @@ Dukonomics = {}
 
 function Dukonomics.Initialize()
   Dukonomics.Data.Initialize()
-  -- Load debug mode from global config
-  Dukonomics.DebugMode = DUKONOMICS_CONFIG and DUKONOMICS_CONFIG.debugMode or false
+  Dukonomics.ConfigRepository.Initialize()
 
-  -- Get version from TOC file (C_AddOns.GetAddOnMetadata for modern WoW, fallback to old API)
-  local version = (C_AddOns and C_AddOns.GetAddOnMetadata("Dukonomics", "Version")) or GetAddOnMetadata and GetAddOnMetadata("Dukonomics", "Version") or "0.4.0"
-  Dukonomics.Logger.print("v" .. version .. " loaded")
+  -- Initialize options
+  Dukonomics.Options.Initialize()
+
+  -- Initialize Main UI (Deferred until config is ready)
+  if Dukonomics.UI and Dukonomics.UI.Initialize then
+    Dukonomics.UI.Initialize()
+  end
+
+  -- Load debug mode from config repository
+  Dukonomics.DebugMode = Dukonomics.ConfigRepository.IsDebugModeEnabled()
+
+  -- Show welcome message if enabled
+  if Dukonomics.ConfigRepository.IsWelcomeMessageEnabled() then
+    -- Get version from TOC file (C_AddOns.GetAddOnMetadata for modern WoW, fallback to old API)
+    local version = (C_AddOns and C_AddOns.GetAddOnMetadata("Dukonomics", "Version")) or GetAddOnMetadata and GetAddOnMetadata("Dukonomics", "Version") or "0.4.0"
+    Dukonomics.Logger.print("v" .. version .. " loaded - Thanks for using Dukonomics! Type /duk for options.")
+  end
 
   Dukonomics.AuctionHandler.Initialize()
   Dukonomics.MailHandler.Initialize()

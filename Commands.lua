@@ -2,7 +2,7 @@
 
 function Dukonomics.ToggleDebug()
   Dukonomics.DebugMode = not Dukonomics.DebugMode
-  DUKONOMICS_CONFIG.debugMode = Dukonomics.DebugMode
+  Dukonomics.ConfigRepository.SetDebugMode(Dukonomics.DebugMode)
 
   local dataType = Dukonomics.DebugMode and "DEBUG" or "PRODUCTION"
   Dukonomics.Logger.print("Debug mode: " .. (Dukonomics.DebugMode and "ON" or "OFF") .. " (using " .. dataType .. " data)")
@@ -11,7 +11,7 @@ end
 function Dukonomics.SetDebugMode(enabled)
   if Dukonomics.DebugMode ~= enabled then
     Dukonomics.DebugMode = enabled
-    DUKONOMICS_CONFIG.debugMode = Dukonomics.DebugMode
+    Dukonomics.ConfigRepository.SetDebugMode(Dukonomics.DebugMode)
   end
 
   local dataType = Dukonomics.DebugMode and "DEBUG" or "PRODUCTION"

@@ -2,7 +2,7 @@
 ## Title: Dukonomics
 ## Notes: Auction House accounting and tracking addon
 ## Author: Duck
-## Version: 0.4.0
+## Version: 0.5.0
 ## SavedVariables: DUKONOMICS_DATA, DUKONOMICS_DEBUG_DATA, DUKONOMICS_CONFIG
 ## IconTexture: Interface\Icons\INV_Misc_Coin_01
 
@@ -13,6 +13,7 @@ core\Localization.lua
 
 # Data Layer
 data\Repository.lua
+data\ConfigRepository.lua
 data\MailData.lua
 data\MailCache.lua
 
@@ -32,6 +33,7 @@ Commands.lua
 # UI
 UI\Config.lua
 UI\Formatting.lua
+UI\OptionsPanel.lua
 UI\MainFrame.xml
 UI\MainFrame.lua
 UI\components\DataTable.lua

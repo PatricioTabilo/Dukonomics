@@ -14,13 +14,25 @@ local SIZES = Dukonomics.UI.Config.SIZES
 function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   local self = {}
 
-  -- Filter state
+  -- Filter state (load from cache if enabled)
   local filters = {
     type = "all",       -- all, sales, purchases
     timeRange = "all",  -- all, 24h, 7d, 30d
     status = "all",     -- all, active, sold, cancelled, expired, purchased
     character = "all"   -- all, or character name
   }
+
+  -- Load cached filters if option is enabled
+  local cacheEnabled = Dukonomics.ConfigRepository.IsCacheFiltersEnabled()
+  Dukonomics.Logger.print("[Dukonomics] Filter cache enabled: " .. tostring(cacheEnabled))
+  if cacheEnabled then
+    local cached = Dukonomics.ConfigRepository.GetCachedFilters()
+    Dukonomics.Logger.print("[Dukonomics] Cached filters loaded: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
+    filters.type = cached.type or filters.type
+    filters.timeRange = cached.timeRange or filters.timeRange
+    filters.status = cached.status or filters.status
+    filters.character = cached.character or filters.character
+  end
 
   -- Main container (increased height for filter pills)
   local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
@@ -39,6 +51,18 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
 
   -- Forward declaration
   local UpdateFilterPills
+
+  -- Save filters to cache if enabled
+  local function SaveFilters()
+    if Dukonomics.ConfigRepository.IsCacheFiltersEnabled() then
+      Dukonomics.ConfigRepository.SetCachedFilters({
+        type = filters.type,
+        timeRange = filters.timeRange,
+        status = filters.status,
+        character = filters.character
+      })
+    end
+  end
 
   -----------------------------------------------------------
   -- Search box
@@ -172,6 +196,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
     filters.timeRange = value
     local labels = {all = "All Time", ["24h"] = "Last 24h", ["7d"] = "Last 7d", ["30d"] = "Last 30d"}
     timeFilterText:SetText(labels[value])
+    SaveFilters()
     UpdateFilterPills()
     if onFilterChange then onFilterChange() end
   end)
@@ -246,6 +271,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       }
       statusFilterText:SetText(labels[value])
       statusMenuOpen = false
+      SaveFilters()
       UpdateFilterPills()
       if onFilterChange then onFilterChange() end
     end)
@@ -295,6 +321,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       end
     end
 
+    SaveFilters()
     UpdateFilterPills()
     if onFilterChange then onFilterChange() end
   end)
@@ -369,6 +396,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       end
 
       charMenuOpen = false
+      SaveFilters()
       UpdateFilterPills()
       if onFilterChange then onFilterChange() end
     end)
@@ -458,6 +486,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
           filters.status = "all"
           statusFilterText:SetText("All Status")
         end
+        SaveFilters()
         UpdateFilterPills()
         if onFilterChange then onFilterChange() end
       end)
@@ -473,6 +502,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       local pill = CreateFilterPill("Time: " .. labels[filters.timeRange], function()
         filters.timeRange = "all"
         timeFilterText:SetText("All Time")
+        SaveFilters()
         UpdateFilterPills()
         if onFilterChange then onFilterChange() end
       end)
@@ -488,6 +518,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       local pill = CreateFilterPill("Status: " .. labels[filters.status], function()
         filters.status = "all"
         statusFilterText:SetText("All Status")
+        SaveFilters()
         UpdateFilterPills()
         if onFilterChange then onFilterChange() end
       end)
@@ -512,6 +543,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       local pill = CreateFilterPill("Char: " .. displayName, function()
         filters.character = "all"
         charFilterText:SetText("All Characters")
+        SaveFilters()
         UpdateFilterPills()
         if onFilterChange then onFilterChange() end
       end)
@@ -546,6 +578,63 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
 
   -- Initialize pills (hidden by default)
   pillContainer:Hide()
+
+  -- Update UI to reflect loaded filters
+  if Dukonomics.ConfigRepository.IsCacheFiltersEnabled() then
+    local cached = Dukonomics.ConfigRepository.GetCachedFilters()
+
+    -- Sync internal filters with cache (defensive)
+    filters.type = cached.type or filters.type
+    filters.timeRange = cached.timeRange or filters.timeRange
+    filters.status = cached.status or filters.status
+    filters.character = cached.character or filters.character
+
+    -- Update button texts
+    if cached.type and cached.type ~= "all" then
+      local labels = {sales = "Sales", purchases = "Purchases"}
+      typeFilterText:SetText(labels[cached.type] or "All")
+    end
+
+    if cached.timeRange and cached.timeRange ~= "all" then
+      local labels = {["24h"] = "Last 24h", ["7d"] = "Last 7d", ["30d"] = "Last 30d"}
+      timeFilterText:SetText(labels[cached.timeRange] or "All Time")
+    end
+
+    if cached.status and cached.status ~= "all" then
+      local labels = {active = "Active", sold = "Sold", cancelled = "Cancelled", expired = "Expired", purchased = "Purchased"}
+      statusFilterText:SetText(labels[cached.status] or "All Status")
+    end
+
+    if cached.character and cached.character ~= "all" then
+      local chars = Dukonomics.Data.GetCharacters()
+      for _, char in ipairs(chars) do
+        if char.key == cached.character then
+          charFilterText:SetText(char.character .. " - " .. char.realm)
+          break
+        end
+      end
+    end
+
+    -- Keep status dropdown consistent with cached type
+    if filters.type == "purchases" then
+      filters.status = "purchased"
+      statusFilterText:SetText("Purchased")
+      statusFilterBtn:Disable()
+      statusFilterBtn:SetAlpha(0.5)
+    else
+      statusFilterBtn:Enable()
+      statusFilterBtn:SetAlpha(1.0)
+      if filters.status == "purchased" then
+        filters.status = "all"
+        statusFilterText:SetText("All Status")
+      end
+    end
+
+    UpdateFilterPills()
+    if onFilterChange then
+      onFilterChange()
+    end
+  end
 
   self.frame = container
   self.searchBox = searchBox

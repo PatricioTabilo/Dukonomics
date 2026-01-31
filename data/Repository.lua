@@ -35,13 +35,6 @@ function Dukonomics.Data.GetDataStore()
 end
 
 function Dukonomics.Data.Initialize()
-  -- Initialize global config
-  if not DUKONOMICS_CONFIG then
-    DUKONOMICS_CONFIG = {
-      debugMode = false
-    }
-  end
-
   -- Initialize production data
   if not DUKONOMICS_DATA then
     DUKONOMICS_DATA = {

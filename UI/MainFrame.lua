@@ -8,7 +8,13 @@ local SIZES = Dukonomics.UI.Config.SIZES
 -- Main Frame
 -----------------------------------------------------------
 
-local frame = CreateFrame("Frame", "DukonomicsMainFrame", UIParent, "BackdropTemplate")
+-- Forward declarations
+local frame
+local filterBar, summaryBar, dataTable
+
+function Dukonomics.UI.Initialize()
+
+frame = CreateFrame("Frame", "DukonomicsMainFrame", UIParent, "BackdropTemplate")
 frame:SetSize(SIZES.FRAME_WIDTH, SIZES.FRAME_HEIGHT)
 frame:SetPoint("CENTER")
 frame:SetMovable(true)
@@ -71,21 +77,21 @@ filterBarAnchor:SetHeight(SIZES.FILTER_HEIGHT + 24)
 filterBarAnchor:SetPoint("TOPLEFT", titleBar, "BOTTOMLEFT", 0, -4)
 filterBarAnchor:SetPoint("TOPRIGHT", titleBar, "BOTTOMRIGHT", 0, -4)
 
-local filterBar = Dukonomics.UI.FilterBar.Create(filterBarAnchor, function()
+filterBar = Dukonomics.UI.FilterBar.Create(filterBarAnchor, function()
   if frame.UpdateDisplay then
     frame:UpdateDisplay()
   end
 end)
 
 -- Summary Bar (at bottom)
-local summaryBar = Dukonomics.UI.SummaryBar.Create(frame)
+summaryBar = Dukonomics.UI.SummaryBar.Create(frame)
 
 -- Data Table (between filters and summary)
 local tableAnchor = CreateFrame("Frame", nil, frame)
 tableAnchor:SetPoint("TOPLEFT", filterBarAnchor, "BOTTOMLEFT", 0, -4)
 tableAnchor:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -6, 42)
 
-local dataTable = Dukonomics.UI.DataTable.Create(tableAnchor)
+dataTable = Dukonomics.UI.DataTable.Create(tableAnchor)
 
 -----------------------------------------------------------
 -- Data Logic
@@ -255,6 +261,20 @@ frame:SetScript("OnShow", function(self)
   self:UpdateDisplay()
 end)
 
+Dukonomics.MainFrame = frame
+Dukonomics.Logger.print("UI Initialized")
+end
+
+local function LogFilterCacheState()
+  local cacheEnabled = Dukonomics.ConfigRepository.IsCacheFiltersEnabled()
+  local cached = Dukonomics.ConfigRepository.GetCachedFilters()
+  local current = filterBar:GetFilters()
+
+  Dukonomics.Logger.print("Filter cache enabled: " .. tostring(cacheEnabled))
+  Dukonomics.Logger.print("Cached filters: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
+  Dukonomics.Logger.print("Active filters: type=" .. tostring(current.type) .. ", timeRange=" .. tostring(current.timeRange) .. ", status=" .. tostring(current.status) .. ", character=" .. tostring(current.character))
+end
+
 -----------------------------------------------------------
 -- Public API
 -----------------------------------------------------------
@@ -262,6 +282,7 @@ end)
 Dukonomics.UI = Dukonomics.UI or {}
 
 function Dukonomics.UI.Show()
+  LogFilterCacheState()
   frame:Show()
 end
 
@@ -270,17 +291,17 @@ function Dukonomics.UI.Hide()
 end
 
 function Dukonomics.UI.Toggle()
+  if not frame then return end
   if frame:IsShown() then
     frame:Hide()
   else
+    LogFilterCacheState()
     frame:Show()
   end
 end
 
 function Dukonomics.UI.Refresh()
-  if frame:IsShown() then
+  if frame and frame:IsShown() then
     frame:UpdateDisplay()
   end
 end
-
-Dukonomics.MainFrame = frame
