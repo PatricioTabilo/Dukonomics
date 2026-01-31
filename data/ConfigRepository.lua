@@ -13,6 +13,12 @@ local DEFAULT_CONFIG = {
     timeRange = "all",
     status = "all",
     characters = {}
+  },
+  minimap = {
+    hide = false,
+    minimapPos = 45, -- Used by LibDBIcon
+    radius = 80,
+    angle = 45
   }
 }
 
@@ -88,6 +94,27 @@ function Dukonomics.ConfigRepository.SetCachedFilters(filters)
   end
 
   Dukonomics.Logger.debug("Config updated: cachedFilters")
+end
+
+-- Get minimap config
+function Dukonomics.ConfigRepository.GetMinimapConfig()
+  return Dukonomics.ConfigRepository.Get("minimap", DEFAULT_CONFIG.minimap)
+end
+
+-- Set minimap config
+function Dukonomics.ConfigRepository.SetMinimapConfig(config)
+  if not DUKONOMICS_CONFIG then
+    Dukonomics.ConfigRepository.Initialize()
+  end
+
+  -- Merge updates
+  if not DUKONOMICS_CONFIG.minimap then DUKONOMICS_CONFIG.minimap = {} end
+
+  if config.hide ~= nil then DUKONOMICS_CONFIG.minimap.hide = config.hide end
+  if config.radius ~= nil then DUKONOMICS_CONFIG.minimap.radius = config.radius end
+  if config.angle ~= nil then DUKONOMICS_CONFIG.minimap.angle = config.angle end
+
+  Dukonomics.Logger.debug("Config updated: minimap")
 end
 
 -- Check if feature is enabled

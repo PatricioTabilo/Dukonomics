@@ -6,6 +6,12 @@
 ## SavedVariables: DUKONOMICS_DATA, DUKONOMICS_DEBUG_DATA, DUKONOMICS_CONFIG
 ## IconTexture: Interface\Icons\INV_Misc_Coin_01
 
+# Libraries
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
+
 # Core
 Core.lua
 core\Logger.lua
@@ -34,6 +40,7 @@ Commands.lua
 UI\Config.lua
 UI\Formatting.lua
 UI\OptionsPanel.lua
+UI\MinimapButton.lua
 UI\MainFrame.xml
 UI\MainFrame.lua
 UI\components\DataTable.lua

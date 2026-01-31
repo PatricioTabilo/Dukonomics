@@ -14,6 +14,11 @@ function Dukonomics.Initialize()
     Dukonomics.UI.Initialize()
   end
 
+  -- Initialize Minimap Button
+  if Dukonomics.UI.MinimapButton and Dukonomics.UI.MinimapButton.Initialize then
+     Dukonomics.UI.MinimapButton.Initialize()
+  end
+
   -- Load debug mode from config repository
   Dukonomics.DebugMode = Dukonomics.ConfigRepository.IsDebugModeEnabled()
 

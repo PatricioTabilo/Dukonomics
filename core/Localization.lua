@@ -15,6 +15,30 @@ Dukonomics.L["Auction House Sender"] = {
   ["zhTW"] = "拍賣場",
 }
 
+Dukonomics.L["Left Click"] = {
+  ["enUS"] = "Left Click",
+  ["esES"] = "Clic Izquierdo",
+  ["esMX"] = "Clic Izquierdo",
+}
+
+Dukonomics.L["Right Click"] = {
+  ["enUS"] = "Right Click",
+  ["esES"] = "Clic Derecho",
+  ["esMX"] = "Clic Derecho",
+}
+
+Dukonomics.L["Open Main Window"] = {
+  ["enUS"] = "Open Main Window",
+  ["esES"] = "Abrir Ventana Principal",
+  ["esMX"] = "Abrir Ventana Principal",
+}
+
+Dukonomics.L["Options"] = {
+  ["enUS"] = "Options",
+  ["esES"] = "Opciones",
+  ["esMX"] = "Opciones",
+}
+
 function Dukonomics.Loc(key)
   local locale = GetLocale and GetLocale() or "enUS"
   local strings = Dukonomics.L[key]

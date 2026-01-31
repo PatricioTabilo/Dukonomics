@@ -70,10 +70,15 @@ closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -2)
 -- Options button (Gear icon)
 local optionsBtn = CreateFrame("Button", nil, frame)
 optionsBtn:SetSize(20, 20)
-optionsBtn:SetPoint("RIGHT", closeBtn, "LEFT", -4, 0)
-optionsBtn:SetNormalTexture("Interface\\Icons\\INV_Misc_Gear_01")
-optionsBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-optionsBtn:GetNormalTexture():SetTexCoord(0.1, 0.9, 0.1, 0.9) -- Remove borders
+optionsBtn:SetPoint("RIGHT", closeBtn, "LEFT", -2, 0)
+optionsBtn:SetNormalTexture("Interface\\WorldMap\\Gear_64")
+optionsBtn:GetNormalTexture():SetTexCoord(0, 0.5, 0, 0.5) -- Use top-left part of the texture
+optionsBtn:GetNormalTexture():SetVertexColor(1, 0.82, 0) -- Gold color to match WoW UI
+optionsBtn:SetPushedTexture("Interface\\WorldMap\\Gear_64")
+optionsBtn:GetPushedTexture():SetTexCoord(0, 0.5, 0, 0.5)
+optionsBtn:GetPushedTexture():SetVertexColor(0.8, 0.6, 0) -- Darker gold when pushed
+optionsBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+optionsBtn:GetHighlightTexture():SetTexCoord(0.2, 0.8, 0.2, 0.8) -- Adjust highlight size
 optionsBtn:SetScript("OnClick", function()
   if Dukonomics.Options and Dukonomics.Options.Open then
     Dukonomics.Options.Open()
