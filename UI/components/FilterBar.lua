@@ -19,19 +19,38 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
     type = "all",       -- all, sales, purchases
     timeRange = "all",  -- all, 24h, 7d, 30d
     status = "all",     -- all, active, sold, cancelled, expired, purchased
-    character = "all"   -- all, or character name
+    characters = {}     -- Table of selected character keys (empty = all)
   }
+
+  -- Helper to check if a character is selected
+  local function IsCharacterSelected(charKey)
+    if not filters.characters or #filters.characters == 0 then
+      return true -- Empty means all selected
+    end
+    for _, key in ipairs(filters.characters) do
+      if key == charKey then return true end
+    end
+    return false
+  end
 
   -- Load cached filters if option is enabled
   local cacheEnabled = Dukonomics.ConfigRepository.IsCacheFiltersEnabled()
   Dukonomics.Logger.debug("[Dukonomics] Filter cache enabled: " .. tostring(cacheEnabled))
   if cacheEnabled then
     local cached = Dukonomics.ConfigRepository.GetCachedFilters()
-    Dukonomics.Logger.debug("[Dukonomics] Cached filters loaded: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
+    Dukonomics.Logger.debug("[Dukonomics] Cached filters loaded: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status))
     filters.type = cached.type or filters.type
     filters.timeRange = cached.timeRange or filters.timeRange
     filters.status = cached.status or filters.status
-    filters.character = cached.character or filters.character
+    -- Handle characters table (defensive copy)
+    if cached.characters and type(cached.characters) == "table" then
+      filters.characters = {}
+      for _, v in ipairs(cached.characters) do
+        table.insert(filters.characters, v)
+      end
+    else
+      filters.characters = {}
+    end
   end
 
   -- Main container (increased height for filter pills)
@@ -59,7 +78,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
         type = filters.type,
         timeRange = filters.timeRange,
         status = filters.status,
-        character = filters.character
+        characters = filters.characters
       })
     end
   end
@@ -366,11 +385,17 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   local function UpdateCharacterMenu()
     -- Get unique characters from data
     local chars = Dukonomics.Data.GetCharacters()
-    local items = {{label = "All Characters", value = "all"}}
+    local items = {} -- Removed explicit "All" option from list as it's handled by header
 
     for _, char in ipairs(chars) do
       local displayName = char.character .. " - " .. char.realm
-      table.insert(items, {label = displayName, value = char.key})
+      -- Check if this specific char is selected
+      local isChecked = IsCharacterSelected(char.key)
+      if not filters.characters or #filters.characters == 0 then
+        isChecked = true -- If list is empty -> All are selected
+      end
+
+      table.insert(items, {label = displayName, value = char.key, checked = isChecked})
     end
 
     -- Recreate menu
@@ -379,27 +404,74 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       charMenu = nil
     end
 
-    charMenu = CreateDropdownMenu(items, function(value)
-      filters.character = value
-
-      -- Update display text
-      if value == "all" then
-        charFilterText:SetText("All Characters")
+    charMenu = CreateDropdownMenu(items, function(value, refreshOnly)
+      if refreshOnly then
+         -- Clean refresh (e.g. Select All clicked)
       else
-        -- Find the character to get display name
-        for _, char in ipairs(chars) do
-          if char.key == value then
-            charFilterText:SetText(char.character .. " - " .. char.realm)
-            break
+        -- Toggle logic
+        local isAllSelected = not filters.characters or #filters.characters == 0
+
+        if isAllSelected then
+          -- Currently showing ALL. User clicked ONE to toggle OFF? Or toggled specific ON?
+          -- Strategy: If ALL is active, clicking one means we switch to specific mode
+          -- If we click a char, we want that char to be the ONLY one? Or toggle it off?
+          -- Standard filter behavior:
+          -- Initial state: All checked.
+          -- User unchecks one -> Add rest to list? No that's tedious.
+          -- User checks one -> Switch to only that one?
+
+          -- Better UX:
+          -- If "All" is active, and user clicks specific char, assume they want just that char + others they add?
+          -- Or assume they want to remove just that char?
+
+          -- Let's implement: "List starts empty (meaning All). If user clicks char, we initialize list with just that char."
+          filters.characters = {value}
+
+        else
+          -- Specific list active
+          local foundIdx = nil
+          for i, v in ipairs(filters.characters) do
+            if v == value then foundIdx = i break end
+          end
+
+          if foundIdx then
+             -- Remove from list
+             table.remove(filters.characters, foundIdx)
+             -- If list becomes empty, does it mean ALL or NONE?
+             -- Convention here: Empty = All.
+             -- To avoid confusion, if list is empty after removal, we keep it empty (All).
+          else
+             -- Add to list
+             table.insert(filters.characters, value)
           end
         end
       end
 
-      charMenuOpen = false
+      -- Update button text
+      if not filters.characters or #filters.characters == 0 then
+        charFilterText:SetText("All Characters")
+      elseif #filters.characters == 1 then
+         -- Find name
+         for _, char in ipairs(chars) do
+            if char.key == filters.characters[1] then
+               charFilterText:SetText(char.character)
+               break
+            end
+         end
+      else
+         charFilterText:SetText(#filters.characters .. " Selected")
+      end
+
+      -- Re-render menu to show new checks
+      UpdateCharacterMenu()
+      charMenu:SetPoint("TOPLEFT", charFilterBtn, "BOTTOMLEFT", 0, -2)
+      charMenu:Show()
+      charMenuOpen = true
+
       SaveFilters()
       UpdateFilterPills()
       if onFilterChange then onFilterChange() end
-    end)
+    end, true) -- true for isMultiSelect
   end
 
   charFilterBtn:SetScript("OnClick", function(btn)
@@ -528,20 +600,24 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
     end
 
     -- Character filter
-    if filters.character ~= "all" then
+    if filters.characters and #filters.characters > 0 then
       hasActiveFilters = true
-      -- Get character display name
-      local chars = Dukonomics.Data.GetCharacters()
-      local displayName = "Character"
-      for _, char in ipairs(chars) do
-        if char.key == filters.character then
-          displayName = char.character
-          break
-        end
+
+      local charText = ""
+      if #filters.characters == 1 then
+         local chars = Dukonomics.Data.GetCharacters()
+         for _, char in ipairs(chars) do
+            if char.key == filters.characters[1] then
+               charText = char.character
+               break
+            end
+         end
+      else
+         charText = #filters.characters .. " Chars"
       end
 
-      local pill = CreateFilterPill("Char: " .. displayName, function()
-        filters.character = "all"
+      local pill = CreateFilterPill("Char: " .. charText, function()
+        filters.characters = {} -- Empty means all
         charFilterText:SetText("All Characters")
         SaveFilters()
         UpdateFilterPills()
@@ -605,13 +681,11 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       statusFilterText:SetText(labels[cached.status] or "All Status")
     end
 
-    if cached.character and cached.character ~= "all" then
-      local chars = Dukonomics.Data.GetCharacters()
-      for _, char in ipairs(chars) do
-        if char.key == cached.character then
-          charFilterText:SetText(char.character .. " - " .. char.realm)
-          break
-        end
+    if cached.characters then
+      if #cached.characters > 0 then
+         charFilterText:SetText(#cached.characters .. " Selected")
+      else
+         charFilterText:SetText("All Characters")
       end
     end
 

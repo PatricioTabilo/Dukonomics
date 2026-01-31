@@ -86,9 +86,15 @@ function Dukonomics.Options.Initialize()
     if InterfaceOptions_AddCategory then
         -- Classic/older versions
         InterfaceOptions_AddCategory(panel)
+        Dukonomics.Options.Open = function()
+            InterfaceOptionsFrame_OpenToCategory(panel)
+        end
     elseif Settings and Settings.RegisterCanvasLayoutCategory then
         -- Modern versions (Dragonflight+)
         local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
         Settings.RegisterAddOnCategory(category)
+        Dukonomics.Options.Open = function()
+            Settings.OpenToCategory(category:GetID())
+        end
     end
 end

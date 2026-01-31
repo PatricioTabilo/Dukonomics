@@ -12,7 +12,7 @@ local DEFAULT_CONFIG = {
     type = "all",
     timeRange = "all",
     status = "all",
-    character = "all"
+    characters = {}
   }
 }
 
@@ -83,7 +83,9 @@ function Dukonomics.ConfigRepository.SetCachedFilters(filters)
   DUKONOMICS_CONFIG.cachedFilters.type = filters.type or DUKONOMICS_CONFIG.cachedFilters.type or "all"
   DUKONOMICS_CONFIG.cachedFilters.timeRange = filters.timeRange or DUKONOMICS_CONFIG.cachedFilters.timeRange or "all"
   DUKONOMICS_CONFIG.cachedFilters.status = filters.status or DUKONOMICS_CONFIG.cachedFilters.status or "all"
-  DUKONOMICS_CONFIG.cachedFilters.character = filters.character or DUKONOMICS_CONFIG.cachedFilters.character or "all"
+  if filters.characters then
+    DUKONOMICS_CONFIG.cachedFilters.characters = filters.characters
+  end
 
   Dukonomics.Logger.debug("Config updated: cachedFilters")
 end

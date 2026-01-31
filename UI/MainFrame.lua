@@ -67,6 +67,27 @@ local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 closeBtn:SetSize(32, 32)
 closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -2)
 
+-- Options button (Gear icon)
+local optionsBtn = CreateFrame("Button", nil, frame)
+optionsBtn:SetSize(20, 20)
+optionsBtn:SetPoint("RIGHT", closeBtn, "LEFT", -4, 0)
+optionsBtn:SetNormalTexture("Interface\\Icons\\INV_Misc_Gear_01")
+optionsBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+optionsBtn:GetNormalTexture():SetTexCoord(0.1, 0.9, 0.1, 0.9) -- Remove borders
+optionsBtn:SetScript("OnClick", function()
+  if Dukonomics.Options and Dukonomics.Options.Open then
+    Dukonomics.Options.Open()
+  end
+end)
+optionsBtn:SetScript("OnEnter", function(self)
+  GameTooltip:SetOwner(self, "ANCHOR_TOP")
+  GameTooltip:SetText("Options", 1, 1, 1)
+  GameTooltip:Show()
+end)
+optionsBtn:SetScript("OnLeave", function(self)
+  GameTooltip:Hide()
+end)
+
 -----------------------------------------------------------
 -- Components
 -----------------------------------------------------------
@@ -161,14 +182,22 @@ local function GetFilteredData()
         end
 
         -- Character filter (format: "Character-Realm")
-        if match and filters.character ~= "all" then
-          if not posting.source then
-            match = false
-          else
-            local charKey = posting.source.character .. "-" .. posting.source.realm
-            if charKey ~= filters.character then
-              match = false
-            end
+        if match then
+          -- Check if list is not empty (empty means ALL allowed)
+          if filters.characters and #filters.characters > 0 then
+             if not posting.source then
+               match = false
+             else
+               local charKey = posting.source.character .. "-" .. posting.source.realm
+               local found = false
+               for _, allowedKey in ipairs(filters.characters) do
+                 if charKey == allowedKey then
+                   found = true
+                   break
+                 end
+               end
+               if not found then match = false end
+             end
           end
         end
 
@@ -215,14 +244,22 @@ local function GetFilteredData()
         end
 
         -- Character filter (format: "Character-Realm")
-        if match and filters.character ~= "all" then
-          if not purchase.source then
-            match = false
-          else
-            local charKey = purchase.source.character .. "-" .. purchase.source.realm
-            if charKey ~= filters.character then
-              match = false
-            end
+        if match then
+          -- Check if list is not empty (empty means ALL allowed)
+          if filters.characters and #filters.characters > 0 then
+             if not purchase.source then
+               match = false
+             else
+               local charKey = purchase.source.character .. "-" .. purchase.source.realm
+               local found = false
+               for _, allowedKey in ipairs(filters.characters) do
+                 if charKey == allowedKey then
+                   found = true
+                   break
+                 end
+               end
+               if not found then match = false end
+             end
           end
         end
 
@@ -271,8 +308,8 @@ local function LogFilterCacheState()
   local current = filterBar:GetFilters()
 
   Dukonomics.Logger.debug("Filter cache enabled: " .. tostring(cacheEnabled))
-  Dukonomics.Logger.debug("Cached filters: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status) .. ", character=" .. tostring(cached.character))
-  Dukonomics.Logger.debug("Active filters: type=" .. tostring(current.type) .. ", timeRange=" .. tostring(current.timeRange) .. ", status=" .. tostring(current.status) .. ", character=" .. tostring(current.character))
+  Dukonomics.Logger.debug("Cached filters: type=" .. tostring(cached.type) .. ", timeRange=" .. tostring(cached.timeRange) .. ", status=" .. tostring(cached.status))
+  Dukonomics.Logger.debug("Active filters: type=" .. tostring(current.type) .. ", timeRange=" .. tostring(current.timeRange) .. ", status=" .. tostring(current.status))
 end
 
 -----------------------------------------------------------
