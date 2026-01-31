@@ -61,43 +61,43 @@ function Dukonomics.UI.SummaryBar.Create(parent)
   -- Create summary labels with better spacing distribution
   local labels = {}
 
-  -- Purchases (In)
-  local inLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  inLabel:SetPoint("LEFT", container, "LEFT", 12, 0)
-  inLabel:SetText("In: ")
-  inLabel:SetTextColor(0.7, 0.7, 0.7, 1)
+  -- Posted (potential income from active auctions)
+  local postedLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  postedLabel:SetPoint("LEFT", container, "LEFT", 12, 0)
+  postedLabel:SetText("Posted: ")
+  postedLabel:SetTextColor(0.7, 0.7, 0.7, 1)
 
-  local inValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  inValue:SetPoint("LEFT", inLabel, "RIGHT", 2, 0)
-  inValue:SetText("0" .. COPPER_ICON)
-  inValue:SetTextColor(1, 0.5, 0.5, 1) -- Red for spending
+  local postedValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  postedValue:SetPoint("LEFT", postedLabel, "RIGHT", 2, 0)
+  postedValue:SetText("0" .. COPPER_ICON)
+  postedValue:SetTextColor(0.6, 0.8, 1, 1) -- Light blue for pending/potential
 
-  -- Expenses (Out)
-  local outLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  outLabel:SetPoint("LEFT", container, "LEFT", 230, 0)
-  outLabel:SetText("Out: ")
-  outLabel:SetTextColor(0.7, 0.7, 0.7, 1)
+  -- Sales (completed)
+  local salesLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  salesLabel:SetPoint("LEFT", container, "LEFT", 220, 0)
+  salesLabel:SetText("Sales: ")
+  salesLabel:SetTextColor(0.7, 0.7, 0.7, 1)
 
-  local outValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  outValue:SetPoint("LEFT", outLabel, "RIGHT", 2, 0)
-  outValue:SetText("0" .. COPPER_ICON)
-  outValue:SetTextColor(1, 0.7, 0.3, 1) -- Orange for expenses
+  local salesValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  salesValue:SetPoint("LEFT", salesLabel, "RIGHT", 2, 0)
+  salesValue:SetText("0" .. COPPER_ICON)
+  salesValue:SetTextColor(0.4, 0.9, 0.4, 1) -- Green for income
 
-  -- Revenue
-  local revenueLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  revenueLabel:SetPoint("LEFT", container, "LEFT", 450, 0)
-  revenueLabel:SetText("Revenue: ")
-  revenueLabel:SetTextColor(0.7, 0.7, 0.7, 1)
+  -- Purchases (money spent buying)
+  local depositsLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  depositsLabel:SetPoint("LEFT", container, "LEFT", 430, 0)
+  depositsLabel:SetText("Purchases: ")
+  depositsLabel:SetTextColor(0.7, 0.7, 0.7, 1)
 
-  local revenueValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  revenueValue:SetPoint("LEFT", revenueLabel, "RIGHT", 2, 0)
-  revenueValue:SetText("0" .. COPPER_ICON)
-  revenueValue:SetTextColor(0.4, 0.9, 0.4, 1) -- Green for income
+  local depositsValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  depositsValue:SetPoint("LEFT", depositsLabel, "RIGHT", 2, 0)
+  depositsValue:SetText("0" .. COPPER_ICON)
+  depositsValue:SetTextColor(1, 0.5, 0.5, 1) -- Red for spending
 
-  -- Profit (fixed position from right)
+  -- Net Profit (fixed position from right)
   local profitLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
   profitLabel:SetPoint("RIGHT", container, "RIGHT", -200, 0)
-  profitLabel:SetText("Profit: ")
+  profitLabel:SetText("Net Profit: ")
   profitLabel:SetTextColor(0.7, 0.7, 0.7, 1)
 
   local profitValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -110,40 +110,41 @@ function Dukonomics.UI.SummaryBar.Create(parent)
   -----------------------------------------------------------
 
   function self:Update(data)
-    local totalIn = 0        -- Total spent on purchases
-    local totalOut = 0       -- Total expenses (deposits)
-    local totalRevenue = 0   -- Total from sales
+    local totalPosted = 0      -- Value of active auctions (potential income)
+    local totalSales = 0       -- Total earned from completed sales
+    local totalPurchases = 0   -- Total spent buying items
 
     for _, item in ipairs(data) do
-      -- Count purchases (money spent buying)
-      if item._type == "purchase" then
-        totalIn = totalIn + ((item.price or 0) * (item.count or 1))
+      if item._type == "sale" then
+        -- Active auctions = potential income (Posted)
+        if item.status == "active" then
+          totalPosted = totalPosted + ((item.price or 0) * (item.count or 1))
 
-      -- Count sales and expenses
-      elseif item._type == "sale" then
-        -- Add deposits to expenses
-        totalOut = totalOut + ((item.deposit or 0) * (item.count or 1))
-
-        -- Add revenue from sold items
-        if item.status == "sold" then
-          totalRevenue = totalRevenue + ((item.soldPrice or item.price or 0) * (item.count or 1))
+        -- Sold = actual income
+        elseif item.status == "sold" then
+          totalSales = totalSales + ((item.soldPrice or item.price or 0) * (item.count or 1))
         end
+
+      -- Purchases = money spent buying
+      elseif item._type == "purchase" then
+        totalPurchases = totalPurchases + ((item.price or 0) * (item.count or 1))
       end
     end
 
-    -- Calculate profit (Revenue - Expenses - Purchases)
-    local profit = totalRevenue - totalOut - totalIn
+    -- Net Profit = Sales - Purchases
+    local netProfit = totalSales - totalPurchases
 
     -- Update display
-    inValue:SetText(FormatMoney(totalIn))
-    outValue:SetText(FormatMoney(totalOut))
-    revenueValue:SetText(FormatMoney(totalRevenue))
-    profitValue:SetText(FormatMoney(profit))
+    postedValue:SetText(FormatMoney(totalPosted))
+    salesValue:SetText(FormatMoney(totalSales))
+    depositsValue:SetText(FormatMoney(totalPurchases))
+    profitValue:SetText(FormatMoney(math.abs(netProfit)))
 
     -- Color profit based on positive/negative
-    if profit > 0 then
+    if netProfit > 0 then
       profitValue:SetTextColor(0.4, 0.9, 0.4, 1) -- Green
-    elseif profit < 0 then
+    elseif netProfit < 0 then
+      profitValue:SetText("-" .. FormatMoney(math.abs(netProfit)))
       profitValue:SetTextColor(1, 0.5, 0.5, 1) -- Red
     else
       profitValue:SetTextColor(0.7, 0.7, 0.7, 1) -- Gray
