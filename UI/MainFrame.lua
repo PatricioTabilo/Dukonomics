@@ -23,6 +23,13 @@ frame:Hide()
 -- Close with ESC key
 tinsert(UISpecialFrames, "DukonomicsMainFrame")
 
+-- Also handle ESC directly
+frame:SetScript("OnKeyDown", function(self, key)
+  if key == "ESCAPE" then
+    self:Hide()
+  end
+end)
+
 -- Main backdrop
 frame:SetBackdrop({
   bgFile = "Interface\\Buttons\\WHITE8x8",

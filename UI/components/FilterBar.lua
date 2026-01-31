@@ -33,9 +33,9 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   -- Active filters container (pills showing what's filtered)
   local activePills = {}
   local pillContainer = CreateFrame("Frame", nil, container)
-  pillContainer:SetPoint("TOPLEFT", container, "TOPLEFT", 12, -30)
-  pillContainer:SetPoint("TOPRIGHT", container, "TOPRIGHT", -12, -30)
-  pillContainer:SetHeight(20)
+  pillContainer:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 12, 2)
+  pillContainer:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", -12, 2)
+  pillContainer:SetHeight(18)
 
   -- Forward declaration
   local UpdateFilterPills
@@ -46,7 +46,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
 
   local searchIcon = container:CreateTexture(nil, "ARTWORK")
   searchIcon:SetSize(18, 18)
-  searchIcon:SetPoint("LEFT", container, "LEFT", 12, 0)
+  searchIcon:SetPoint("LEFT", container, "LEFT", 12, 8)
   searchIcon:SetTexture("Interface\\Common\\UI-Searchbox-Icon")
 
   local searchBox = CreateFrame("EditBox", nil, container, "InputBoxTemplate")
