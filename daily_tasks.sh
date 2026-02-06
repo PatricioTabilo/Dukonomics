@@ -1,24 +1,24 @@
 
-# commit: docs(core): explain main addon table initialization
-sed -i 's/^Dukonomics = {}/-- Main addon table\nDukonomics = {}/' Core.lua
+# task: docs(core): explain main addon table initialization
+Add a comment above Dukonomics = {} explaining it's the main addon table
 
-# commit: docs(logger): add comment to print() clarifying prefixed output
-sed -i 's/^function Dukonomics.Logger.print/-- Print a message with addon prefix\nfunction Dukonomics.Logger.print/' core/Logger.lua
+# task: docs(logger): add comment to print() clarifying prefixed output
+Add a comment above the Dukonomics.Logger.print function explaining it prints messages with addon prefix
 
-# commit: refactor(commands): rename handler param from msg to message for clarity
-sed -i 's/SlashCmdList\["DUKONOMICS"\] = function(msg)/SlashCmdList["DUKONOMICS"] = function(message)/' Commands.lua
+# task: refactor(commands): rename handler param from msg to message for clarity
+Rename the parameter from 'msg' to 'message' in the SlashCmdList["DUKONOMICS"] function handler
 
-# commit: refactor(commands): update parsing to use message instead of msg
-sed -i 's/msg:match/message:match/' Commands.lua
+# task: refactor(commands): update parsing to use message instead of msg
+Update the string matching calls to use 'message' instead of 'msg' in Commands.lua
 
-# commit: chore(core): remove redundant initialization debug log
-sed -i '/Dukonomics.Logger.debug("Initialization complete")/d' Core.lua
+# task: chore(core): remove redundant initialization debug log
+Remove the debug log "Initialization complete" from Core.lua
 
-# commit: style(auction): fix indentation for PriceMatchesPending call
-sed -i 's/^       PriceMatchesPending/      PriceMatchesPending/' handlers/AuctionHandler.lua
+# task: style(auction): fix indentation for PriceMatchesPending call
+Fix the indentation of the PriceMatchesPending call in AuctionHandler.lua to match the surrounding code
 
-# commit: docs(sales): document ProcessSale transaction handling
-sed -i 's/^function Dukonomics.SalesService.ProcessSale/-- Process a sale transaction\nfunction Dukonomics.SalesService.ProcessSale/' services/SalesService.lua
+# task: docs(sales): document ProcessSale transaction handling
+Add a comment above the Dukonomics.SalesService.ProcessSale function explaining it processes sale transactions
 
 # commit: style(data): trim trailing whitespace in Repository.lua
 sed -i 's/[ \t]*$//' data/Repository.lua

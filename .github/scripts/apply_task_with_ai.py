@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Simple Copilot-like helper to apply the next task using an AI model.
-- Reads commit message and command from args
+- Reads commit message and task description from args
 - Attempts to infer affected files, includes their content in the prompt
-- Calls OpenAI Chat Completions API (requires OPENAI_API_KEY env var)
+- Calls GitHub Models API (requires GITHUB_TOKEN env var)
 - Expects model to return a unified diff between <PATCH> and </PATCH>
 - Applies the patch with `git apply` if present
 
@@ -29,8 +29,9 @@ MODEL = "claude-4.5-sonnet"  # GitHub Models default; also: gpt-4o, claude-3.5-s
 PATH_REGEX = re.compile(r"(?:\s|\'|\")([\w\.\-/]+\.(?:lua|md|yml|yaml|xml|txt|json|sh))")
 
 
-def find_paths_in_cmd(cmd: str) -> List[str]:
-    matches = PATH_REGEX.findall(cmd)
+def find_paths_in_task(task_desc: str) -> List[str]:
+    """Extract file paths mentioned in the task description."""
+    matches = PATH_REGEX.findall(task_desc)
     # Only return unique, existing paths
     result = []
     for m in matches:
@@ -125,26 +126,26 @@ def apply_patch(patch: str) -> bool:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--commit', required=True)
-    parser.add_argument('--cmd', required=True)
+    parser.add_argument('--task', required=True)  # Changed from --cmd to --task
     parser.add_argument('--model', default=os.environ.get('COPILOT_MODEL', MODEL))
     args = parser.parse_args()
 
     commit_msg = args.commit
-    cmd = args.cmd
+    task_desc = args.task  # Changed from cmd to task_desc
 
     print('AI-Assisted Apply: commit=', commit_msg)
-    print('Command: ', cmd)
+    print('Task: ', task_desc)
 
-    paths = find_paths_in_cmd(cmd)
+    paths = find_paths_in_task(task_desc)  # Changed from find_paths_in_cmd
     print('Detected paths:', paths)
 
     file_contents = read_files(paths) if paths else ''
 
-    prompt = f"Commit message: {commit_msg}\nShell command: {cmd}\n"
+    prompt = f"Commit message: {commit_msg}\nTask description: {task_desc}\n"
     if file_contents:
         prompt += "\nRepository files provided:\n" + file_contents
 
-    prompt += "\n\nGoal: Produce a minimal unified diff patch that implements the change described by the shell command, or, if appropriate, output a short shell snippet to run instead. ALWAYS wrap the patch between <PATCH> and </PATCH> tags. If no patch is needed, respond with <NO_PATCH> and a short explanation. Do not modify unrelated files. Keep changes minimal and safe."
+    prompt += "\n\nGoal: Implement the described task by producing a minimal unified diff patch. ALWAYS wrap the patch between <PATCH> and </PATCH> tags. If no patch is needed, respond with <NO_PATCH> and a short explanation. Do not modify unrelated files. Keep changes minimal and safe."
 
     print('Calling GitHub Models API...')
     try:
