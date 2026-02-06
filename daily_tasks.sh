@@ -1,5 +1,3 @@
-# commit: chore(core): align version fallback with TOC version
-sed -i 's/"0.4.0"/"0.9.0"/' Core.lua
 
 # commit: fix(ui/minimap): correct Spanish typo to singular in LibDataBroker message
 sed -i 's/Bibliotecas LibDataBroker no encontradas/Biblioteca LibDataBroker no encontrada/' UI/MinimapButton.lua
