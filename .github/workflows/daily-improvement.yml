@@ -22,7 +22,7 @@ jobs:
       - name: Apply next improvement (GitHub Copilot-assisted)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COPILOT_MODEL: gpt-4o-mini  # Options: gpt-4o-mini, gpt-4o, claude-3.5-sonnet
+          COPILOT_MODEL: claude-4.5-sonnet  # Options: gpt-4o-mini, gpt-4o, claude-3.5-sonnet
         run: |
           if [ ! -f daily_tasks.sh ]; then
             echo "No tasks file found!"
@@ -56,8 +56,8 @@ jobs:
             bash -c "$second_line"
           fi
 
-          # Drop the first two lines (commit header + command)
-          tail -n +3 daily_tasks.sh > .daily_tasks.next && mv .daily_tasks.next daily_tasks.sh
+          # Drop the first two lines (commit header + command), then clean leading empty lines
+          tail -n +3 daily_tasks.sh | sed '/./,$!d' > .daily_tasks.next && mv .daily_tasks.next daily_tasks.sh
 
           # Export commit message for later steps
           echo "COMMIT_MSG=$commit_msg" >> $GITHUB_ENV
