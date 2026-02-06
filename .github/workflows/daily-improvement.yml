@@ -5,6 +5,10 @@ on:
     - cron: '0 23 * * *'  # 23:00 UTC daily (US peak start)
   workflow_dispatch:  # manual trigger
 
+permissions:
+  contents: write  # for pushing commits
+  models: read     # for GitHub Models API access
+
 jobs:
   improve-code:
     runs-on: ubuntu-latest
