@@ -2,7 +2,8 @@ name: Daily Code Improvement
 
 on:
   schedule:
-    - cron: '0 23 * * *'  # 23:00 UTC daily (US peak start)
+    - cron: '0 19 * * *'  # 19:00 UTC daily (European evening + US East peak start)
+    - cron: '0 2 * * *'   # 02:00 UTC daily (US West evening + European night)
   workflow_dispatch:  # manual trigger
 
 permissions:
