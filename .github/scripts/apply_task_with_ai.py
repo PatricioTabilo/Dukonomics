@@ -23,7 +23,7 @@ import requests
 
 # GitHub Models API (available in GitHub Actions with GITHUB_TOKEN)
 GITHUB_MODELS_API_URL = "https://models.inference.ai.azure.com/chat/completions"
-MODEL = "claude-4.5-sonnet"  # GitHub Models default; also: gpt-4o, claude-3.5-sonnet
+MODEL = "openai/gpt-5"  # GitHub Models default; also: gpt-4o, claude-3.5-sonnet
 
 # Helpful heuristics to find file paths in a shell command
 PATH_REGEX = re.compile(r"(?:\s|\'|\")([\w\.\-/]+\.(?:lua|md|yml|yaml|xml|txt|json|sh))")
