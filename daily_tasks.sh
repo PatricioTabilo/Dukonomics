@@ -1,6 +1,3 @@
-# task: Core.lua - docs(core): explain main addon table initialization
-Add a comment above Dukonomics = {} explaining it's the main addon table
-
 # task: core/Logger.lua - docs(logger): add comment to print() clarifying prefixed output
 Add a comment above the Dukonomics.Logger.print function explaining it prints messages with addon prefix
 

@@ -1,5 +1,6 @@
 -- Dukonomics: Auction House accounting and tracking
 
+-- Dukonomics is the main addon table
 Dukonomics = {}
 
 function Dukonomics.Initialize()

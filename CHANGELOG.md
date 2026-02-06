@@ -7,3 +7,6 @@
 ## 0.9.2 - 2026-02-06
 - fix(ui/minimap): correct Spanish typo to singular in LibDataBroker message
 
+## 0.9.3 - 2026-02-06
+- docs(core): explain main addon table initialization
+
