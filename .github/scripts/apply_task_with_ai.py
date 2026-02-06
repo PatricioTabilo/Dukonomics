@@ -30,14 +30,54 @@ PATH_REGEX = re.compile(r"(?:\s|\'|\")([\w\.\-/]+\.(?:lua|md|yml|yaml|xml|txt|js
 
 
 def find_paths_in_task(task_desc: str) -> List[str]:
-    """Extract file paths mentioned in the task description."""
+    """Extract file paths mentioned in the task description, or find files containing relevant code."""
+    # First, try to find explicit file paths in the task description
     matches = PATH_REGEX.findall(task_desc)
-    # Only return unique, existing paths
     result = []
     for m in matches:
         if m not in result and os.path.exists(m):
             result.append(m)
-    return result
+
+    # If no explicit paths found, try to infer from code patterns in the task
+    if not result:
+        # Look for common code patterns that might indicate which file to modify
+        if "Dukonomics =" in task_desc or "Dukonomics = {}" in task_desc:
+            # Check common files that might contain this
+            candidates = ["Core.lua", "core/Core.lua"]
+            for candidate in candidates:
+                if os.path.exists(candidate):
+                    try:
+                        with open(candidate, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            if "Dukonomics = {" in content or "Dukonomics =" in content:
+                                result.append(candidate)
+                                break
+                    except:
+                        pass
+
+        # Add more patterns for other common modifications
+        elif "Logger" in task_desc and ("print" in task_desc or "debug" in task_desc):
+            candidates = ["core/Logger.lua", "Logger.lua"]
+            for candidate in candidates:
+                if os.path.exists(candidate):
+                    result.append(candidate)
+                    break
+
+        elif "AuctionHandler" in task_desc or "auction" in task_desc.lower():
+            candidates = ["handlers/AuctionHandler.lua", "AuctionHandler.lua"]
+            for candidate in candidates:
+                if os.path.exists(candidate):
+                    result.append(candidate)
+                    break
+
+        elif "MailHandler" in task_desc or "mail" in task_desc.lower():
+            candidates = ["handlers/MailHandler.lua", "MailHandler.lua"]
+            for candidate in candidates:
+                if os.path.exists(candidate):
+                    result.append(candidate)
+                    break
+
+    return list(set(result))  # Remove duplicates
 
 
 def read_files(paths: List[str]) -> str:
@@ -144,6 +184,12 @@ def main():
     prompt = f"Commit message: {commit_msg}\nTask description: {task_desc}\n"
     if file_contents:
         prompt += "\nRepository files provided:\n" + file_contents
+    elif paths:
+        prompt += f"\nDetected relevant files: {', '.join(paths)}\n"
+        # Read the files even if they weren't detected by content initially
+        file_contents = read_files(paths)
+        if file_contents:
+            prompt += "\nRepository files provided:\n" + file_contents
 
     prompt += "\n\nGoal: Implement the described task by producing a minimal unified diff patch. ALWAYS wrap the patch between <PATCH> and </PATCH> tags. If no patch is needed, respond with <NO_PATCH> and a short explanation. Do not modify unrelated files. Keep changes minimal and safe."
 
