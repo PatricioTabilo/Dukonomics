@@ -1,4 +1,3 @@
-
 # commit: fix(ui/minimap): correct Spanish typo to singular in LibDataBroker message
 sed -i 's/Bibliotecas LibDataBroker no encontradas/Biblioteca LibDataBroker no encontrada/' UI/MinimapButton.lua
 

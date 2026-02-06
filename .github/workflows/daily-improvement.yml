@@ -15,7 +15,10 @@ jobs:
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Apply next improvement (with Conventional Commit message)
+      - name: Apply next improvement (GitHub Copilot-assisted)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_MODEL: gpt-4o-mini  # Options: gpt-4o-mini, gpt-4o, claude-3.5-sonnet
         run: |
           if [ ! -f daily_tasks.sh ]; then
             echo "No tasks file found!"
@@ -35,7 +38,19 @@ jobs:
           second_line=$(head -n 2 daily_tasks.sh | tail -n 1)
 
           echo "Applying task with commit message: $commit_msg"
-          bash -c "$second_line"
+
+          # Install minimal dependencies for AI script
+          python3 -m pip install --upgrade pip requests >/dev/null
+
+          # Try GitHub Copilot-assisted apply (uses GITHUB_TOKEN automatically)
+          set -o pipefail
+          python3 .github/scripts/apply_task_with_ai.py --commit "$commit_msg" --cmd "$second_line" --model "$COPILOT_MODEL" || AI_OK=$?
+          if [ -z "$AI_OK" ]; then
+            echo "✅ GitHub Copilot applied changes successfully"
+          else
+            echo "⚠️  Copilot-assisted apply failed (code $AI_OK), falling back to direct execution"
+            bash -c "$second_line"
+          fi
 
           # Drop the first two lines (commit header + command)
           tail -n +3 daily_tasks.sh > .daily_tasks.next && mv .daily_tasks.next daily_tasks.sh
