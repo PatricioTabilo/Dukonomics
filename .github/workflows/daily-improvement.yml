@@ -2,68 +2,78 @@ name: Daily Code Improvement
 
 on:
   schedule:
-    - cron: '0 23 * * *'  # 23:00 UTC diariamente
-  workflow_dispatch:  # Para probar
+    - cron: '0 23 * * *'  # 23:00 UTC daily (US peak start)
+  workflow_dispatch:  # manual trigger
 
 jobs:
   improve-code:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (as you)
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Apply next improvement
+      - name: Apply next improvement (with Conventional Commit message)
         run: |
-          # Leer la primera línea (comentario de tarea)
           if [ ! -f daily_tasks.sh ]; then
             echo "No tasks file found!"
             exit 1
           fi
-          
+
+          # First line must start with '# commit: ...'
           first_line=$(head -n 1 daily_tasks.sh)
-          if [[ $first_line == \#* ]]; then
-            # Es un comentario de tarea, extraer descripción
-            task_desc=$(echo "$first_line" | sed 's/# Task [0-9]*: //')
-            commit_msg="Daily improvement: $task_desc"
-            
-            # Leer la segunda línea (comando)
-            second_line=$(head -n 2 daily_tasks.sh | tail -n 1)
-            
-            # Ejecutar el comando
-            eval "$second_line"
-            
-            # Remover las primeras dos líneas
-            tail -n +3 daily_tasks.sh > temp_tasks.sh && mv temp_tasks.sh daily_tasks.sh
-            
-            echo "COMMIT_MSG=$commit_msg" >> $GITHUB_ENV
+          if [[ "$first_line" =~ ^\#\ commit:\ (.+)$ ]]; then
+            commit_msg="${BASH_REMATCH[1]}"
           else
-            echo "No more tasks or invalid format!"
-            exit 0
+            echo "Invalid tasks file format (missing '# commit:' line)"
+            exit 1
           fi
+
+          # Second line is the shell command to apply the change
+          second_line=$(head -n 2 daily_tasks.sh | tail -n 1)
+
+          echo "Applying task with commit message: $commit_msg"
+          bash -c "$second_line"
+
+          # Drop the first two lines (commit header + command)
+          tail -n +3 daily_tasks.sh > .daily_tasks.next && mv .daily_tasks.next daily_tasks.sh
+
+          # Export commit message for later steps
+          echo "COMMIT_MSG=$commit_msg" >> $GITHUB_ENV
 
       - name: Update CHANGELOG.md
         run: |
           today=$(date +'%Y-%m-%d')
-          echo "## $(grep '## Version:' Dukonomics.toc | sed 's/## Version: //') - $today" >> CHANGELOG.md
-          echo "- $COMMIT_MSG" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
+          current_version=$(grep "## Version:" Dukonomics.toc | sed 's/## Version: //')
+          {
+            echo "## $current_version - $today"
+            echo "- $COMMIT_MSG"
+            echo ""
+          } >> CHANGELOG.md
 
-      - name: Increment version in Dukonomics.toc
+      - name: Increment patch version in Dukonomics.toc (export NEW_VERSION)
         run: |
           current_version=$(grep "## Version:" Dukonomics.toc | sed 's/## Version: //')
           IFS='.' read -ra VERSION_PARTS <<< "$current_version"
-          last_part=$((VERSION_PARTS[2] + 1))
-          new_version="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$last_part"
+          patch=$((VERSION_PARTS[2] + 1))
+          new_version="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$patch"
           sed -i "s/## Version: .*/## Version: $new_version/" Dukonomics.toc
+          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
 
-      - name: Commit and push changes
+      - name: Commit and push changes (as PatricioTabilo)
         run: |
           git config --local user.name "PatricioTabilo"
           git config --local user.email "pj.tabilo@gmail.com"
-          git add .
-          git add daily_tasks.sh  # Ensure it's tracked
+
+          # Only commit if there are actual changes
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes detected; skipping commit."
+            exit 0
+          fi
+
+          git add -A
           git commit -m "$COMMIT_MSG"
           git push
         env:
@@ -72,10 +82,17 @@ jobs:
           GIT_COMMITTER_NAME: PatricioTabilo
           GIT_COMMITTER_EMAIL: pj.tabilo@gmail.com
 
-      - name: Package and upload to Curse Forge
-        uses: BigWigsMods/packager@v2
-        env:
-          CF_API_KEY: ${{ secrets.CF_API_KEY }}
-          GITHUB_OAUTH: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-        with:
-          args: -p ${{ secrets.CF_PROJECT_ID }} -g retail -c stable
+      - name: Create and push Git tag (v${NEW_VERSION})
+        run: |
+          git fetch --tags
+          if [ -z "${NEW_VERSION}" ]; then
+            echo "NEW_VERSION not set; skipping tag."
+            exit 0
+          fi
+
+          if git rev-parse -q --verify "refs/tags/v${NEW_VERSION}" >/dev/null; then
+            echo "Tag v${NEW_VERSION} already exists, skipping."
+          else
+            git tag -a "v${NEW_VERSION}" -m "Release ${NEW_VERSION}: ${COMMIT_MSG}"
+            git push origin "v${NEW_VERSION}"
+          fi
