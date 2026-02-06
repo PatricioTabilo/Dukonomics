@@ -1,4 +1,3 @@
-
 # task: docs(core): explain main addon table initialization
 Add a comment above Dukonomics = {} explaining it's the main addon table
 

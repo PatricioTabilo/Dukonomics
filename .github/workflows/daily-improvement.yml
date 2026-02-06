@@ -29,6 +29,9 @@ jobs:
             exit 1
           fi
 
+          # Trim leading empty lines to avoid format errors
+          sed -i '/./,$!d' daily_tasks.sh
+
           # First line must start with '# task: ...'
           first_line=$(head -n 1 daily_tasks.sh)
           if [[ "$first_line" =~ ^\#\ task:\ (.+)$ ]]; then
