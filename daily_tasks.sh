@@ -1,5 +1,3 @@
-# commit: fix(ui/minimap): correct Spanish typo to singular in LibDataBroker message
-sed -i 's/Bibliotecas LibDataBroker no encontradas/Biblioteca LibDataBroker no encontrada/' UI/MinimapButton.lua
 
 # commit: docs(core): explain main addon table initialization
 sed -i 's/^Dukonomics = {}/-- Main addon table\nDukonomics = {}/' Core.lua

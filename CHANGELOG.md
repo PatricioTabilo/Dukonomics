@@ -4,3 +4,6 @@
 ## 0.9.1 - 2026-02-06
 - chore(core): align version fallback with TOC version
 
+## 0.9.2 - 2026-02-06
+- fix(ui/minimap): correct Spanish typo to singular in LibDataBroker message
+

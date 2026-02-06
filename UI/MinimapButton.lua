@@ -13,7 +13,7 @@ function Dukonomics.UI.MinimapButton.Initialize()
     local icon = LibStub and LibStub("LibDBIcon-1.0", true)
 
     if not LDB then
-        Dukonomics.Logger.error("Bibliotecas LibDataBroker no encontradas. Boton del minimapa desactivado.")
+        Dukonomics.Logger.error("Biblioteca LibDataBroker no encontrada. Boton del minimapa desactivado.")
         return
     end
 
