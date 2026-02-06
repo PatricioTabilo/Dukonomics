@@ -75,14 +75,14 @@ jobs:
             echo ""
           } >> CHANGELOG.md
 
-      # - name: Increment patch version in Dukonomics.toc (export NEW_VERSION)
-      #   run: |
-      #     current_version=$(grep "## Version:" Dukonomics.toc | sed 's/## Version: //')
-      #     IFS='.' read -ra VERSION_PARTS <<< "$current_version"
-      #     patch=$((VERSION_PARTS[2] + 1))
-      #     new_version="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$patch"
-      #     sed -i "s/## Version: .*/## Version: $new_version/" Dukonomics.toc
-      #     echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
+      - name: Increment patch version in Dukonomics.toc (export NEW_VERSION)
+        run: |
+          current_version=$(grep "## Version:" Dukonomics.toc | sed 's/## Version: //')
+          IFS='.' read -ra VERSION_PARTS <<< "$current_version"
+          patch=$((VERSION_PARTS[2] + 1))
+          new_version="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$patch"
+          sed -i "s/## Version: .*/## Version: $new_version/" Dukonomics.toc
+          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
 
       - name: Commit and push changes (as PatricioTabilo)
         run: |
@@ -104,17 +104,17 @@ jobs:
           GIT_COMMITTER_NAME: PatricioTabilo
           GIT_COMMITTER_EMAIL: pj.tabilo@gmail.com
 
-      # - name: Create and push Git tag (v${NEW_VERSION})
-      #   run: |
-      #     git fetch --tags
-      #     if [ -z "${NEW_VERSION}" ]; then
-      #       echo "NEW_VERSION not set; skipping tag."
-      #       exit 0
-      #     fi
-      #
-      #     if git rev-parse -q --verify "refs/tags/v${NEW_VERSION}" >/dev/null; then
-      #       echo "Tag v${NEW_VERSION} already exists, skipping."
-      #     else
-      #       git tag -a "v${NEW_VERSION}" -m "Release ${NEW_VERSION}: ${COMMIT_MSG}"
-      #       git push origin "v${NEW_VERSION}"
-      #     fi
+      - name: Create and push Git tag (v${NEW_VERSION})
+        run: |
+          git fetch --tags
+          if [ -z "${NEW_VERSION}" ]; then
+            echo "NEW_VERSION not set; skipping tag."
+            exit 0
+          fi
+
+          if git rev-parse -q --verify "refs/tags/v${NEW_VERSION}" >/dev/null; then
+            echo "Tag v${NEW_VERSION} already exists, skipping."
+          else
+            git tag -a "v${NEW_VERSION}" -m "Release ${NEW_VERSION}: ${COMMIT_MSG}"
+            git push origin "v${NEW_VERSION}"
+          fi
