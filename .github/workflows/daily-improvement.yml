@@ -1,0 +1,81 @@
+name: Daily Code Improvement
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # 23:00 UTC diariamente
+  workflow_dispatch:  # Para probar
+
+jobs:
+  improve-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Apply next improvement
+        run: |
+          # Leer la primera línea (comentario de tarea)
+          if [ ! -f daily_tasks.sh ]; then
+            echo "No tasks file found!"
+            exit 1
+          fi
+          
+          first_line=$(head -n 1 daily_tasks.sh)
+          if [[ $first_line == \#* ]]; then
+            # Es un comentario de tarea, extraer descripción
+            task_desc=$(echo "$first_line" | sed 's/# Task [0-9]*: //')
+            commit_msg="Daily improvement: $task_desc"
+            
+            # Leer la segunda línea (comando)
+            second_line=$(head -n 2 daily_tasks.sh | tail -n 1)
+            
+            # Ejecutar el comando
+            eval "$second_line"
+            
+            # Remover las primeras dos líneas
+            tail -n +3 daily_tasks.sh > temp_tasks.sh && mv temp_tasks.sh daily_tasks.sh
+            
+            echo "COMMIT_MSG=$commit_msg" >> $GITHUB_ENV
+          else
+            echo "No more tasks or invalid format!"
+            exit 0
+          fi
+
+      - name: Update CHANGELOG.md
+        run: |
+          today=$(date +'%Y-%m-%d')
+          echo "## $(grep '## Version:' Dukonomics.toc | sed 's/## Version: //') - $today" >> CHANGELOG.md
+          echo "- $COMMIT_MSG" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+
+      - name: Increment version in Dukonomics.toc
+        run: |
+          current_version=$(grep "## Version:" Dukonomics.toc | sed 's/## Version: //')
+          IFS='.' read -ra VERSION_PARTS <<< "$current_version"
+          last_part=$((VERSION_PARTS[2] + 1))
+          new_version="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$last_part"
+          sed -i "s/## Version: .*/## Version: $new_version/" Dukonomics.toc
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.name "PatricioTabilo"
+          git config --local user.email "pj.tabilo@gmail.com"
+          git add .
+          git add daily_tasks.sh  # Ensure it's tracked
+          git commit -m "$COMMIT_MSG"
+          git push
+        env:
+          GIT_AUTHOR_NAME: PatricioTabilo
+          GIT_AUTHOR_EMAIL: pj.tabilo@gmail.com
+          GIT_COMMITTER_NAME: PatricioTabilo
+          GIT_COMMITTER_EMAIL: pj.tabilo@gmail.com
+
+      - name: Package and upload to Curse Forge
+        uses: BigWigsMods/packager@v2
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          GITHUB_OAUTH: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          args: -p ${{ secrets.CF_PROJECT_ID }} -g retail -c stable
