@@ -32,19 +32,22 @@ jobs:
           # Trim leading empty lines to avoid format errors
           sed -i '/./,$!d' daily_tasks.sh
 
-          # First line must start with '# task: ...'
+          # First line must start with '# task: FILE - COMMIT_MSG'
           first_line=$(head -n 1 daily_tasks.sh)
-          if [[ "$first_line" =~ ^\#\ task:\ (.+)$ ]]; then
-            commit_msg="${BASH_REMATCH[1]}"
+          if [[ "$first_line" =~ ^\#\ task:\ (.+)\ -\ (.+)$ ]]; then
+            file_path="${BASH_REMATCH[1]}"
+            commit_msg="${BASH_REMATCH[2]}"
           else
-            echo "Invalid tasks file format (missing '# task:' line)"
+            echo "Invalid tasks file format (missing '# task: FILE - COMMIT_MSG' line)"
             exit 1
           fi
+
+          echo "File to modify: $file_path"
+          echo "Applying task with commit message: $commit_msg"
 
           # Second line is the task description (instruction for AI)
           second_line=$(head -n 2 daily_tasks.sh | tail -n 1)
 
-          echo "Applying task with commit message: $commit_msg"
           echo "Task description: $second_line"
 
           # Install minimal dependencies for AI script
@@ -52,7 +55,7 @@ jobs:
 
           # Try GitHub Copilot-assisted apply (uses GITHUB_TOKEN automatically)
           set -o pipefail
-          python3 .github/scripts/apply_task_with_ai.py --commit "$commit_msg" --task "$second_line" --model "$COPILOT_MODEL"
+          python3 .github/scripts/apply_task_with_ai.py --commit "$commit_msg" --task "$second_line" --file "$file_path" --model "$COPILOT_MODEL"
           echo "✅ GitHub Copilot applied changes successfully"
 
           # Drop the first two lines (commit header + command), then clean leading empty lines

@@ -166,30 +166,30 @@ def apply_patch(patch: str) -> bool:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--commit', required=True)
-    parser.add_argument('--task', required=True)  # Changed from --cmd to --task
+    parser.add_argument('--task', required=True)
+    parser.add_argument('--file', required=True)  # New required parameter
     parser.add_argument('--model', default=os.environ.get('COPILOT_MODEL', MODEL))
     args = parser.parse_args()
 
     commit_msg = args.commit
-    task_desc = args.task  # Changed from cmd to task_desc
+    task_desc = args.task
+    file_path = args.file
 
     print('AI-Assisted Apply: commit=', commit_msg)
+    print('File: ', file_path)
     print('Task: ', task_desc)
 
-    paths = find_paths_in_task(task_desc)  # Changed from find_paths_in_cmd
-    print('Detected paths:', paths)
+    # Use the specified file directly
+    paths = [file_path] if os.path.exists(file_path) else []
+    print('Target file:', file_path, '(exists)' if paths else '(not found)')
 
     file_contents = read_files(paths) if paths else ''
 
     prompt = f"Commit message: {commit_msg}\nTask description: {task_desc}\n"
     if file_contents:
         prompt += "\nRepository files provided:\n" + file_contents
-    elif paths:
-        prompt += f"\nDetected relevant files: {', '.join(paths)}\n"
-        # Read the files even if they weren't detected by content initially
-        file_contents = read_files(paths)
-        if file_contents:
-            prompt += "\nRepository files provided:\n" + file_contents
+    elif file_path:
+        prompt += f"\nTarget file: {file_path}\n"
 
     prompt += "\n\nGoal: Implement the described task by producing a minimal unified diff patch. ALWAYS wrap the patch between <PATCH> and </PATCH> tags. If no patch is needed, respond with <NO_PATCH> and a short explanation. Do not modify unrelated files. Keep changes minimal and safe."
 
