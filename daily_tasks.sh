@@ -1,5 +1,3 @@
-# Task 1: Update version fallback in Core.lua to match current version
-sed -i 's/"0.4.0"/"0.9.0"/' Core.lua
 # Task 2: Fix typo in MinimapButton.lua (singular instead of plural)
 sed -i 's/Bibliotecas LibDataBroker no encontradas/Biblioteca LibDataBroker no encontrada/' UI/MinimapButton.lua
 # Task 3: Add comment to Dukonomics table initialization
