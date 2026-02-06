@@ -3,6 +3,7 @@ Dukonomics.Logger = {}
 local PREFIX = "|cFF00D4FFDukonomics:|r "
 local DEBUG_PREFIX = "|cFF808080[Dukonomics]|r "
 
+-- Prints messages with the addon prefix
 function Dukonomics.Logger.print(msg)
   print(PREFIX .. msg)
 end

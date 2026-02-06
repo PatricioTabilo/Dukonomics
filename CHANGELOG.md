@@ -10,3 +10,6 @@
 ## 0.9.3 - 2026-02-06
 - docs(core): explain main addon table initialization
 
+## 0.9.3 - 2026-02-06
+- docs(logger): add comment to print() clarifying prefixed output
+

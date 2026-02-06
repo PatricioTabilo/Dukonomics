@@ -1,6 +1,3 @@
-# task: core/Logger.lua - docs(logger): add comment to print() clarifying prefixed output
-Add a comment above the Dukonomics.Logger.print function explaining it prints messages with addon prefix
-
 # task: Commands.lua - refactor(commands): rename handler param from msg to message for clarity
 Rename the parameter from 'msg' to 'message' in the SlashCmdList["DUKONOMICS"] function handler
 
