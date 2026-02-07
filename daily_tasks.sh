@@ -1,6 +1,3 @@
-# task: Commands.lua - refactor(commands): rename handler param from msg to message for clarity
-Rename the parameter from 'msg' to 'message' in the SlashCmdList["DUKONOMICS"] function handler
-
 # task: Commands.lua - refactor(commands): update parsing to use message instead of msg
 Update the string matching calls to use 'message' instead of 'msg' in Commands.lua
 

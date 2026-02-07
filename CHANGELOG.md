@@ -13,3 +13,6 @@
 ## 0.9.3 - 2026-02-06
 - docs(logger): add comment to print() clarifying prefixed output
 
+## 0.9.4 - 2026-02-07
+- refactor(commands): rename handler param from msg to message for clarity
+

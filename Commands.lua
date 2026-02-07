@@ -31,8 +31,8 @@ end
 SLASH_DUKONOMICS1 = "/dukonomics"
 SLASH_DUKONOMICS2 = "/duk"
 
-SlashCmdList["DUKONOMICS"] = function(msg)
-  local cmd, arg = msg:match("^(%S*)%s*(.-)$")
+SlashCmdList["DUKONOMICS"] = function(message)
+  local cmd, arg = message:match("^(%S*)%s*(.-)$")
 
   if cmd == "clear" then
     Dukonomics.Data.ClearOldData(tonumber(arg) or 30)
