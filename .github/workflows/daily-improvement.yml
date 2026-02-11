@@ -6,6 +6,10 @@ on:
     - cron: '0 2 * * *'   # 02:00 UTC daily (US West evening + European night)
   workflow_dispatch:  # manual trigger
 
+concurrency:
+  group: daily-improvement
+  cancel-in-progress: false
+
 permissions:
   contents: write  # for pushing commits
   models: read     # for GitHub Models API access
@@ -15,55 +19,114 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository (as you)
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Apply next improvement (GitHub Copilot-assisted)
+      - name: Apply next improvement (JSONL task queue)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COPILOT_MODEL: gpt-4o-mini  # Always available, good for code generation tasks
+          COPILOT_MODEL: gpt-4o-mini
+          TASK_QUEUE_FILE: .github/automation/daily_tasks.jsonl
         run: |
-          if [ ! -f daily_tasks.sh ]; then
-            echo "No tasks file found!"
+          set -e
+
+          if [ ! -f "$TASK_QUEUE_FILE" ]; then
+            echo "No task queue found: $TASK_QUEUE_FILE"
             exit 1
           fi
 
-          # Trim leading empty lines to avoid format errors
-          sed -i '/./,$!d' daily_tasks.sh
+          python3 .github/scripts/task_queue.py validate --file "$TASK_QUEUE_FILE"
 
-          # First line must start with '# task: FILE - COMMIT_MSG'
-          first_line=$(head -n 1 daily_tasks.sh)
-          if [[ "$first_line" =~ ^\#\ task:\ (.+)\ -\ (.+)$ ]]; then
-            file_path="${BASH_REMATCH[1]}"
-            commit_msg="${BASH_REMATCH[2]}"
-          else
-            echo "Invalid tasks file format (missing '# task: FILE - COMMIT_MSG' line)"
-            exit 1
-          fi
-
-          echo "File to modify: $file_path"
-          echo "Applying task with commit message: $commit_msg"
-
-          # Second line is the task description (instruction for AI)
-          second_line=$(head -n 2 daily_tasks.sh | tail -n 1)
-
-          echo "Task description: $second_line"
-
-          # Install minimal dependencies for AI script
+          # Install dependencies once (not once per attempt)
           python3 -m pip install --upgrade pip requests >/dev/null
 
-          # Try GitHub Copilot-assisted apply (uses GITHUB_TOKEN automatically)
-          set -o pipefail
-          python3 .github/scripts/apply_task_with_ai.py --commit "$commit_msg" --task "$second_line" --file "$file_path" --model "$COPILOT_MODEL"
-          echo "✅ GitHub Copilot applied changes successfully"
+          selected_commit_msg=""
+          selected_file_path=""
+          selected_task_desc=""
+          selected_status=""
+          selected_task_id=""
 
-          # Drop the first two lines (commit header + command), then clean leading empty lines
-          tail -n +3 daily_tasks.sh | sed '/./,$!d' > .daily_tasks.next && mv .daily_tasks.next daily_tasks.sh
+          # Try multiple tasks until one applies changes.
+          for attempt in 1 2 3 4 5; do
+            set +e
+            task_json=$(python3 .github/scripts/task_queue.py peek --file "$TASK_QUEUE_FILE")
+            task_peek_code=$?
+            set -e
 
-          # Export commit message for later steps
-          echo "COMMIT_MSG=$commit_msg" >> $GITHUB_ENV
+            if [ "$task_peek_code" -ne 0 ] || [ "$task_json" = "{}" ]; then
+              echo "No pending tasks left in $TASK_QUEUE_FILE"
+              break
+            fi
+
+            task_id=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["id"])' "$task_json")
+            file_path=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["file"])' "$task_json")
+            commit_msg=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["commit"])' "$task_json")
+            task_desc=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["instruction"])' "$task_json")
+
+            echo "Attempt $attempt"
+            echo "Task ID: $task_id"
+            echo "File to modify: $file_path"
+            echo "Applying task with commit message: $commit_msg"
+            echo "Task description: $task_desc"
+
+            set +e
+            python3 .github/scripts/apply_task_with_ai.py --commit "$commit_msg" --task "$task_desc" --file "$file_path" --model "$COPILOT_MODEL"
+            ai_exit_code=$?
+            set -e
+
+            if [ "$ai_exit_code" -eq 0 ]; then
+              echo "✅ GitHub Copilot applied changes successfully"
+              selected_commit_msg="$commit_msg"
+              selected_file_path="$file_path"
+              selected_task_desc="$task_desc"
+              selected_status="ai_success"
+              selected_task_id="$task_id"
+              python3 .github/scripts/task_queue.py consume --file "$TASK_QUEUE_FILE" || true
+              break
+            fi
+
+            if [ "$ai_exit_code" -eq 3 ]; then
+              echo "⚠️ No changes were produced for this task. Skipping it and trying the next task."
+              mkdir -p .github/automation
+              {
+                echo "- $(date -u +'%Y-%m-%dT%H:%M:%SZ') | skipped-no-change | ${task_id} | ${commit_msg} | ${file_path}"
+              } >> .github/automation/skipped-tasks.log
+              python3 .github/scripts/task_queue.py consume --file "$TASK_QUEUE_FILE" || true
+              continue
+            fi
+
+            echo "⚠️ Copilot/Models step failed with code $ai_exit_code. Applying fallback heartbeat so automation keeps running."
+            mkdir -p .github/automation
+            {
+              echo "- $(date -u +'%Y-%m-%dT%H:%M:%SZ') | fallback | ${task_id} | ${commit_msg} | ${file_path}"
+            } >> .github/automation/daily-heartbeat.log
+            selected_commit_msg="chore(automation): fallback heartbeat - ${commit_msg}"
+            selected_file_path="$file_path"
+            selected_task_desc="$task_desc"
+            selected_status="fallback"
+            selected_task_id="$task_id"
+            python3 .github/scripts/task_queue.py consume --file "$TASK_QUEUE_FILE" || true
+            break
+          done
+
+          # If all attempted tasks returned no-change, still make a heartbeat commit.
+          if [ -z "$selected_status" ]; then
+            mkdir -p .github/automation
+            {
+              echo "- $(date -u +'%Y-%m-%dT%H:%M:%SZ') | no-applicable-task"
+            } >> .github/automation/daily-heartbeat.log
+            selected_commit_msg="chore(automation): heartbeat (no applicable AI task)"
+            selected_file_path="n/a"
+            selected_task_desc="n/a"
+            selected_status="heartbeat"
+            selected_task_id="n/a"
+          fi
+
+          echo "Selected status: $selected_status"
+          echo "Selected task id: $selected_task_id"
+          echo "Selected file: $selected_file_path"
+          echo "Selected task: $selected_task_desc"
+          echo "COMMIT_MSG=$selected_commit_msg" >> "$GITHUB_ENV"
 
       - name: Update CHANGELOG.md
         run: |
@@ -82,14 +145,13 @@ jobs:
           patch=$((VERSION_PARTS[2] + 1))
           new_version="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$patch"
           sed -i "s/## Version: .*/## Version: $new_version/" Dukonomics.toc
-          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
+          echo "NEW_VERSION=$new_version" >> "$GITHUB_ENV"
 
       - name: Commit and push changes (as PatricioTabilo)
         run: |
           git config --local user.name "PatricioTabilo"
           git config --local user.email "pj.tabilo@gmail.com"
 
-          # Only commit if there are actual changes
           if git diff --quiet && git diff --cached --quiet; then
             echo "No changes detected; skipping commit."
             exit 0
