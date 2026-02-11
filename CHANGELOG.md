@@ -16,3 +16,6 @@
 ## 0.9.4 - 2026-02-07
 - refactor(commands): rename handler param from msg to message for clarity
 
+## 0.9.5 - 2026-02-11
+- chore(core): remove redundant initialization debug log
+
