@@ -1,8 +1,8 @@
-## Interface: 120000
+## Interface: 120001
 ## Title: Dukonomics
 ## Notes: Auction House accounting and tracking addon
 ## Author: Duck
-## Version: 0.9.6
+## Version: 0.9.7
 ## SavedVariables: DUKONOMICS_DATA, DUKONOMICS_DEBUG_DATA, DUKONOMICS_CONFIG
 ## IconTexture: Interface\Icons\INV_Misc_Coin_01
 

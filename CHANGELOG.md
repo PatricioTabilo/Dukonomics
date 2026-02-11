@@ -19,3 +19,6 @@
 ## 0.9.5 - 2026-02-11
 - chore(core): remove redundant initialization debug log
 
+## 0.9.6 - 2026-02-11
+- chore(toc): update interface for WoW 12.0.1
+
