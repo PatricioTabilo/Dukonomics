@@ -38,7 +38,7 @@ def parse_timestamp(ts_str):
     """Parse ISO timestamp."""
     try:
         return datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
-    except:
+    except (ValueError, AttributeError):
         return None
 
 

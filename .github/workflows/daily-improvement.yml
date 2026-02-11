@@ -68,7 +68,7 @@ jobs:
           selected_status=""
 
           # Try multiple tasks until one applies changes.
-          for attempt in $(seq 1 $MAX_ATTEMPTS); do
+          for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
             # Trim leading empty lines to avoid format errors
             sed -i '/./,$!d' daily_tasks.sh
 
