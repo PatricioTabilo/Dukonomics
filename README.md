@@ -1,8 +1,12 @@
 <img src="https://media.forgecdn.net/attachments/description/null/description_2c0d7082-88ae-4bce-b64c-11af1a8f35ac.png" width="800" height="200" align="center"/>
 
+[![Daily Code Improvement](https://github.com/PatricioTabilo/Dukonomics/actions/workflows/daily-improvement.yml/badge.svg)](https://github.com/PatricioTabilo/Dukonomics/actions/workflows/daily-improvement.yml)
+
 > [!IMPORTANT]
 > **Beta Release (v0.8.0)**
 > Dukonomics is in public beta. While stable and tracking correctly, we are actively refining the experience. Feedback on CurseForge or GitHub is very welcome!
+>
+> **🤖 AI-Powered Development**: This addon uses an AI agent for continuous improvements. See [AI Agent Docs](.github/AI_AGENT_DOCS.md) for details.
 
 **Your gold history, simplified.**
 

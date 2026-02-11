@@ -33,6 +33,27 @@ python3 apply_task_with_ai.py \
 - `4`: Safety check failed
 - `5`: Validation failed
 
+### ✏️ create_task.py
+
+Interactive tool for creating new tasks.
+
+**Usage:**
+```bash
+# Interactive mode (recommended)
+python3 create_task.py
+
+# Command line mode
+python3 create_task.py \
+  --file "UI/MainFrame.lua" \
+  --type feat \
+  --scope ui \
+  --desc "add export button to toolbar" \
+  --detailed "Add an export button that allows users to export data" \
+  --priority high
+```
+
+**Task Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
 ### 📋 task_manager.py
 
 Task queue management utilities.
