@@ -22,3 +22,6 @@
 ## 0.9.6 - 2026-02-11
 - chore(toc): update interface for WoW 12.0.1
 
+## 0.9.7 - 2026-02-11
+- refactor(commands): extract RequireDebugMode helper
+

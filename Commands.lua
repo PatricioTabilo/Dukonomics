@@ -28,6 +28,14 @@ function Dukonomics.ShowDebugStatus()
   Dukonomics.Logger.print("Current data: " .. postingCount .. " postings, " .. purchaseCount .. " purchases")
 end
 
+function Dukonomics.RequireDebugMode()
+  if not Dukonomics.DebugMode then
+    Dukonomics.Logger.print("Testing commands are only available in debug mode.")
+    return false
+  end
+  return true
+end
+
 SLASH_DUKONOMICS1 = "/dukonomics"
 SLASH_DUKONOMICS2 = "/duk"
 
@@ -38,38 +46,23 @@ SlashCmdList["DUKONOMICS"] = function(message)
     Dukonomics.Data.ClearOldData(tonumber(arg) or 30)
 
   elseif cmd == "testdata" then
-    if not Dukonomics.DebugMode then
-      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
-      return
-    end
+    if not Dukonomics.RequireDebugMode() then return end
     Dukonomics.Testing.GenerateRandomData()
 
   elseif cmd == "simular" or cmd == "sim" then
-    if not Dukonomics.DebugMode then
-      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
-      return
-    end
+    if not Dukonomics.RequireDebugMode() then return end
     Dukonomics.Testing.SimulateScenarios()
 
   elseif cmd == "status" or cmd == "st" then
-    if not Dukonomics.DebugMode then
-      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
-      return
-    end
+    if not Dukonomics.RequireDebugMode() then return end
     Dukonomics.Testing.ShowStatus()
 
   elseif cmd == "test" then
-    if not Dukonomics.DebugMode then
-      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
-      return
-    end
+    if not Dukonomics.RequireDebugMode() then return end
     Dukonomics.Testing.RunTests(arg ~= "" and arg or nil)
 
   elseif cmd == "expected" or cmd == "expect" then
-    if not Dukonomics.DebugMode then
-      Dukonomics.Logger.print("Testing commands are only available in debug mode.")
-      return
-    end
+    if not Dukonomics.RequireDebugMode() then return end
     Dukonomics.Testing.ShowExpected()
 
   elseif cmd == "debug" then
