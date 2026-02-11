@@ -27,6 +27,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COPILOT_MODEL: gpt-4o-mini
           TASK_QUEUE_FILE: .github/automation/daily_tasks.jsonl
+          HISTORY_FILE: .github/automation/task_history.jsonl
         run: |
           set -e
 
@@ -81,6 +82,7 @@ jobs:
               selected_task_desc="$task_desc"
               selected_status="ai_success"
               selected_task_id="$task_id"
+              python3 .github/scripts/task_history.py --file "$HISTORY_FILE" --status "completed" --task-id "$task_id" --task-file "$file_path" --commit-msg "$commit_msg" --instruction "$task_desc" --attempt "$attempt" --ai-exit-code "$ai_exit_code"
               python3 .github/scripts/task_queue.py consume --file "$TASK_QUEUE_FILE" || true
               break
             fi
@@ -91,6 +93,7 @@ jobs:
               {
                 echo "- $(date -u +'%Y-%m-%dT%H:%M:%SZ') | skipped-no-change | ${task_id} | ${commit_msg} | ${file_path}"
               } >> .github/automation/skipped-tasks.log
+              python3 .github/scripts/task_history.py --file "$HISTORY_FILE" --status "skipped_no_change" --task-id "$task_id" --task-file "$file_path" --commit-msg "$commit_msg" --instruction "$task_desc" --attempt "$attempt" --ai-exit-code "$ai_exit_code"
               python3 .github/scripts/task_queue.py consume --file "$TASK_QUEUE_FILE" || true
               continue
             fi
@@ -105,6 +108,7 @@ jobs:
             selected_task_desc="$task_desc"
             selected_status="fallback"
             selected_task_id="$task_id"
+            python3 .github/scripts/task_history.py --file "$HISTORY_FILE" --status "fallback" --task-id "$task_id" --task-file "$file_path" --commit-msg "$commit_msg" --instruction "$task_desc" --attempt "$attempt" --ai-exit-code "$ai_exit_code"
             python3 .github/scripts/task_queue.py consume --file "$TASK_QUEUE_FILE" || true
             break
           done
@@ -120,6 +124,7 @@ jobs:
             selected_task_desc="n/a"
             selected_status="heartbeat"
             selected_task_id="n/a"
+            python3 .github/scripts/task_history.py --file "$HISTORY_FILE" --status "heartbeat_no_applicable_task" --task-id "n/a" --task-file "n/a" --commit-msg "$selected_commit_msg" --instruction "n/a" --attempt 0 --ai-exit-code "n/a"
           fi
 
           echo "Selected status: $selected_status"
