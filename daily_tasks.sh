@@ -1,9 +1,3 @@
-# task: Commands.lua - refactor(commands): update parsing to use message instead of msg
-Update the string matching calls to use 'message' instead of 'msg' in Commands.lua
-
-# task: Core.lua - chore(core): remove redundant initialization debug log
-Remove the debug log "Initialization complete" from Core.lua
-
 # task: handlers/AuctionHandler.lua - style(auction): fix indentation for PriceMatchesPending call
 Fix the indentation of the PriceMatchesPending call in AuctionHandler.lua to match the surrounding code
 

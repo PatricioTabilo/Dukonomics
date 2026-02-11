@@ -33,7 +33,7 @@ function Dukonomics.Initialize()
   Dukonomics.AuctionHandler.Initialize()
   Dukonomics.MailHandler.Initialize()
 
-  Dukonomics.Logger.debug("Initialization complete")
+  -- Dukonomics.Logger.debug("Initialization complete") -- Removed debug log
 end
 
 local frame = CreateFrame("Frame")
