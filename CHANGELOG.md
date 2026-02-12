@@ -28,3 +28,6 @@
 ## 0.9.8 - 2026-02-12
 - fix(formatting): support million separators in FormatMoney
 
+## 0.9.9 - 2026-02-12
+- fix(formatting): handle negative copper values
+

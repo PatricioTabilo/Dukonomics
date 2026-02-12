@@ -8,7 +8,10 @@ local SILVER_ICON = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t"
 local COPPER_ICON = "|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:2:0|t"
 
 function Dukonomics.UI.Formatting.FormatMoney(copper)
-  if not copper or copper == 0 then return "-" end
+  if not copper then return "-" end
+
+  local isNegative = copper < 0
+  copper = math.abs(copper)
 
   local gold = math.floor(copper / 10000)
   local silver = math.floor((copper % 10000) / 100)
@@ -26,7 +29,8 @@ function Dukonomics.UI.Formatting.FormatMoney(copper)
     table.insert(parts, cop .. COPPER_ICON)
   end
 
-  return table.concat(parts, " ")
+  local result = table.concat(parts, " ")
+  return isNegative and "-" .. result or result
 end
 
 function Dukonomics.UI.Formatting.FormatPostedTime(timestamp)
