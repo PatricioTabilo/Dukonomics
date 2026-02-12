@@ -25,3 +25,6 @@
 ## 0.9.7 - 2026-02-11
 - refactor(commands): extract RequireDebugMode helper
 
+## 0.9.8 - 2026-02-12
+- fix(formatting): support million separators in FormatMoney
+

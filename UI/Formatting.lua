@@ -16,7 +16,7 @@ function Dukonomics.UI.Formatting.FormatMoney(copper)
 
   local parts = {}
   if gold > 0 then
-    local goldStr = gold >= 1000 and string.format("%s,%03d", math.floor(gold / 1000), gold % 1000) or tostring(gold)
+    local goldStr = string.format("%d", gold):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", "")
     table.insert(parts, goldStr .. GOLD_ICON)
   end
   if silver > 0 or gold > 0 then
