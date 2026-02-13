@@ -31,3 +31,6 @@
 ## 0.9.9 - 2026-02-12
 - fix(formatting): handle negative copper values
 
+## 0.9.10 - 2026-02-13
+- fix(core): centralize addon version metadata
+
