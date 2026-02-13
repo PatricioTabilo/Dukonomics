@@ -82,6 +82,10 @@ SlashCmdList["DUKONOMICS"] = function(message)
       Dukonomics.Logger.print("  /duk debug status - Show debug status")
     end
 
+  elseif cmd == "version" then
+    local version = Dukonomics.VERSION or "unknown version"
+    Dukonomics.Logger.print("Dukonomics version: " .. version)
+
   elseif cmd == "help" then
     Dukonomics.Logger.print("Commands:")
     Dukonomics.Logger.print("/duk - Open main window")

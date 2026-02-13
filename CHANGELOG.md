@@ -34,3 +34,6 @@
 ## 0.9.10 - 2026-02-13
 - fix(core): centralize addon version metadata
 
+## 0.9.11 - 2026-02-13
+- feat(commands): add /duk version command
+
