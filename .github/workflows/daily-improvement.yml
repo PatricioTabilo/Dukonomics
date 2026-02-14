@@ -6,6 +6,10 @@ on:
     - cron: '0 2 * * *'   # 02:00 UTC daily (US West evening + European night)
   workflow_dispatch:  # manual trigger
 
+concurrency:
+  group: daily-improvement
+  cancel-in-progress: false
+
 permissions:
   contents: write  # for pushing commits
   models: read     # for GitHub Models API access
@@ -15,55 +19,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository (as you)
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Apply next improvement (GitHub Copilot-assisted)
+      - name: Apply next improvement (JSONL task queue)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COPILOT_MODEL: gpt-4o-mini  # Always available, good for code generation tasks
-        run: |
-          if [ ! -f daily_tasks.sh ]; then
-            echo "No tasks file found!"
-            exit 1
-          fi
-
-          # Trim leading empty lines to avoid format errors
-          sed -i '/./,$!d' daily_tasks.sh
-
-          # First line must start with '# task: FILE - COMMIT_MSG'
-          first_line=$(head -n 1 daily_tasks.sh)
-          if [[ "$first_line" =~ ^\#\ task:\ (.+)\ -\ (.+)$ ]]; then
-            file_path="${BASH_REMATCH[1]}"
-            commit_msg="${BASH_REMATCH[2]}"
-          else
-            echo "Invalid tasks file format (missing '# task: FILE - COMMIT_MSG' line)"
-            exit 1
-          fi
-
-          echo "File to modify: $file_path"
-          echo "Applying task with commit message: $commit_msg"
-
-          # Second line is the task description (instruction for AI)
-          second_line=$(head -n 2 daily_tasks.sh | tail -n 1)
-
-          echo "Task description: $second_line"
-
-          # Install minimal dependencies for AI script
-          python3 -m pip install --upgrade pip requests >/dev/null
-
-          # Try GitHub Copilot-assisted apply (uses GITHUB_TOKEN automatically)
-          set -o pipefail
-          python3 .github/scripts/apply_task_with_ai.py --commit "$commit_msg" --task "$second_line" --file "$file_path" --model "$COPILOT_MODEL"
-          echo "✅ GitHub Copilot applied changes successfully"
-
-          # Drop the first two lines (commit header + command), then clean leading empty lines
-          tail -n +3 daily_tasks.sh | sed '/./,$!d' > .daily_tasks.next && mv .daily_tasks.next daily_tasks.sh
-
-          # Export commit message for later steps
-          echo "COMMIT_MSG=$commit_msg" >> $GITHUB_ENV
+          COPILOT_MODEL: gpt-4o-mini
+          TASK_QUEUE_FILE: .github/automation/daily_tasks.jsonl
+          HISTORY_FILE: .github/automation/task_history.jsonl
+        run: .github/scripts/run_daily_improvement.sh
 
       - name: Update CHANGELOG.md
         run: |
@@ -82,14 +47,13 @@ jobs:
           patch=$((VERSION_PARTS[2] + 1))
           new_version="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$patch"
           sed -i "s/## Version: .*/## Version: $new_version/" Dukonomics.toc
-          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV
+          echo "NEW_VERSION=$new_version" >> "$GITHUB_ENV"
 
       - name: Commit and push changes (as PatricioTabilo)
         run: |
           git config --local user.name "PatricioTabilo"
           git config --local user.email "pj.tabilo@gmail.com"
 
-          # Only commit if there are actual changes
           if git diff --quiet && git diff --cached --quiet; then
             echo "No changes detected; skipping commit."
             exit 0
