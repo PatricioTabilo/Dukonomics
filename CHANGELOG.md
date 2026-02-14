@@ -40,3 +40,6 @@
 ## 0.9.12 - 2026-02-14
 - refactor(config): deep-merge default config tables
 
+## 0.9.13 - 2026-02-14
+- docs(readme): add compatibility note for WoW version
+

@@ -32,3 +32,7 @@ No configuration needed. Just install and play.
 
 - **Access**: Click the minimap button or type `/dukonomics` to toggle the main window.
 - **Config**: Right-click the minimap button to open options.
+
+## Compatibility
+
+Dukonomics is currently intended to support the World of Warcraft client version 9.0 and above.
