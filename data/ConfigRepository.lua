@@ -22,6 +22,17 @@ local DEFAULT_CONFIG = {
   }
 }
 
+-- Deep merge function
+local function deepMerge(target, source)
+  for key, value in pairs(source) do
+    if type(value) == "table" and type(target[key] or false) == "table" then
+      deepMerge(target[key], value)
+    else
+      target[key] = value
+    end
+  end
+end
+
 -- Initialize configuration data store
 function Dukonomics.ConfigRepository.Initialize()
   -- Ensure config exists
@@ -33,18 +44,7 @@ function Dukonomics.ConfigRepository.Initialize()
   end
 
   -- Apply defaults safely
-  for key, defaultValue in pairs(DEFAULT_CONFIG) do
-    if DUKONOMICS_CONFIG[key] == nil then
-      if type(defaultValue) == "table" then
-        DUKONOMICS_CONFIG[key] = {}
-        for subKey, subValue in pairs(defaultValue) do
-          DUKONOMICS_CONFIG[key][subKey] = subValue
-        end
-      else
-        DUKONOMICS_CONFIG[key] = defaultValue
-      end
-    end
-  end
+  deepMerge(DUKONOMICS_CONFIG, DEFAULT_CONFIG)
 end
 
 -- Get a configuration value

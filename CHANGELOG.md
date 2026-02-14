@@ -37,3 +37,6 @@
 ## 0.9.11 - 2026-02-13
 - feat(commands): add /duk version command
 
+## 0.9.12 - 2026-02-14
+- refactor(config): deep-merge default config tables
+
