@@ -46,3 +46,6 @@
 ## 0.9.14 - 2026-02-15
 - chore(logger): add warn method for non-critical warnings
 
+## 0.9.15 - 2026-02-15
+- chore(automation): heartbeat (no applicable AI task)
+
