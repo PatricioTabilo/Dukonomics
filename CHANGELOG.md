@@ -43,3 +43,6 @@
 ## 0.9.13 - 2026-02-14
 - docs(readme): add compatibility note for WoW version
 
+## 0.9.14 - 2026-02-15
+- chore(logger): add warn method for non-critical warnings
+
