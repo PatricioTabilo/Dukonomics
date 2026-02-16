@@ -123,6 +123,23 @@ dataTable = Dukonomics.UI.DataTable.Create(tableAnchor)
 -- Data Logic
 -----------------------------------------------------------
 
+local function characterMatch(posting, filters)
+  if filters.characters and #filters.characters > 0 then
+    if not posting.source then
+      return false
+    else
+      local charKey = posting.source.character .. "-" .. posting.source.realm
+      for _, allowedKey in ipairs(filters.characters) do
+        if charKey == allowedKey then
+          return true
+        end
+      end
+      return false
+    end
+  end
+  return true
+end
+
 local function GetFilteredData()
   local data = {}
   local dataStore = Dukonomics.Data.GetDataStore()
@@ -188,22 +205,7 @@ local function GetFilteredData()
 
         -- Character filter (format: "Character-Realm")
         if match then
-          -- Check if list is not empty (empty means ALL allowed)
-          if filters.characters and #filters.characters > 0 then
-             if not posting.source then
-               match = false
-             else
-               local charKey = posting.source.character .. "-" .. posting.source.realm
-               local found = false
-               for _, allowedKey in ipairs(filters.characters) do
-                 if charKey == allowedKey then
-                   found = true
-                   break
-                 end
-               end
-               if not found then match = false end
-             end
-          end
+          match = characterMatch(posting, filters)
         end
 
         if match then
@@ -250,22 +252,7 @@ local function GetFilteredData()
 
         -- Character filter (format: "Character-Realm")
         if match then
-          -- Check if list is not empty (empty means ALL allowed)
-          if filters.characters and #filters.characters > 0 then
-             if not purchase.source then
-               match = false
-             else
-               local charKey = purchase.source.character .. "-" .. purchase.source.realm
-               local found = false
-               for _, allowedKey in ipairs(filters.characters) do
-                 if charKey == allowedKey then
-                   found = true
-                   break
-                 end
-               end
-               if not found then match = false end
-             end
-          end
+          match = characterMatch(purchase, filters)
         end
 
         if match then

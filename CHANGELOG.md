@@ -52,3 +52,6 @@
 ## 0.9.16 - 2026-02-16
 - chore(automation): heartbeat (no applicable AI task)
 
+## 0.9.17 - 2026-02-16
+- refactor(mainframe): extract character match helper for filter pass
+
