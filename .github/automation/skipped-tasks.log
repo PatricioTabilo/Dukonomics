@@ -1,2 +1,7 @@
 - 2026-02-11T16:47:35Z | skipped-no-change | refactor(commands): update parsing to use message instead of msg | Commands.lua
 - 2026-02-14T19:11:32Z | skipped-no-change | DK-008 | feat(testing): add pass/fail summary counters | testing/TestRunner.lua
+- 2026-02-16T03:11:03Z | skipped-no-change | DK-011 | fix(filters): widen character dropdown for long name-realm entries | UI/components/FilterBar.lua
+- 2026-02-16T03:11:44Z | skipped-no-change | DK-012 | feat(filters): add scrollable character dropdown list | UI/components/FilterBar.lua
+- 2026-02-16T03:12:22Z | skipped-no-change | DK-013 | fix(filters): close all open menus when main frame hides | UI/components/FilterBar.lua
+- 2026-02-16T03:13:04Z | skipped-no-change | DK-014 | fix(filters): guard dropdown anchoring near screen edges | UI/components/FilterBar.lua
+- 2026-02-16T03:13:46Z | skipped-no-change | DK-015 | refactor(filters): centralize dropdown open-close state management | UI/components/FilterBar.lua
