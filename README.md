@@ -22,6 +22,12 @@ Dukonomics organizes your transaction history into a **unified accounting overvi
 - **Account-Wide View**: See data across all your characters or filter for specific alts.
 - **Smart Filters**: Search by item or check specific timeframes (24h, 7 Days, Month, All Time). You can also enable **Remember filter settings** to keep your preferences across all characters and sessions.
 
+### Filter Behavior
+
+- **Multi-Select Characters**: Users can select multiple characters to view their combined transaction history, allowing for a more comprehensive overview of their gold activities.
+- **Cached Filters**: The application remembers the last used filter settings, ensuring that users do not have to reapply their preferences every time they access the tool.
+- **Dropdown Closing Expectations**: When a user selects a filter option from a dropdown, the dropdown will automatically close, providing a cleaner and more intuitive user experience.
+
 ## Native by Design
 
 An accounting tool shouldn't feel like a spreadsheet overlay. Dukonomics is built to look and feel like a standard part of the World of Warcraft interface—lightweight, unobtrusive, and instantly familiar.

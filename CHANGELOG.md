@@ -58,3 +58,6 @@
 ## 0.9.18 - 2026-02-17
 - perf(mainframe): remove repeated datastore lookups in filter loops
 
+## 0.9.19 - 2026-02-17
+- docs(readme): add filter UX notes and known limits
+
