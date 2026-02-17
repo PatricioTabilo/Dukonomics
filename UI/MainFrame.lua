@@ -165,7 +165,6 @@ local function GetFilteredData()
   -- First pass: filter by search, type, time, status, character
   -- Add postings (sales)
   if (filters.type == "all" or filters.type == "sales") then
-    local dataStore = Dukonomics.Data.GetDataStore()
     if dataStore.postings then
       for _, posting in ipairs(dataStore.postings) do
         local match = true
@@ -223,7 +222,6 @@ local function GetFilteredData()
 
   -- Add purchases
   if (filters.type == "all" or filters.type == "purchases") then
-    local dataStore = Dukonomics.Data.GetDataStore()
     if dataStore.purchases then
       for _, purchase in ipairs(dataStore.purchases) do
         local match = true

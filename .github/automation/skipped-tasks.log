@@ -6,3 +6,4 @@
 - 2026-02-16T03:13:04Z | skipped-no-change | DK-014 | fix(filters): guard dropdown anchoring near screen edges | UI/components/FilterBar.lua
 - 2026-02-16T03:13:46Z | skipped-no-change | DK-015 | refactor(filters): centralize dropdown open-close state management | UI/components/FilterBar.lua
 - 2026-02-16T19:18:20Z | skipped-no-change | DK-016 | fix(filters): truncate button label with count for multi-character selections | UI/components/FilterBar.lua
+- 2026-02-17T03:08:13Z | skipped-no-change | DK-018 | fix(filters): correct cached characters sync field typo | UI/components/FilterBar.lua

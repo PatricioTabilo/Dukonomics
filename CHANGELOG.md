@@ -55,3 +55,6 @@
 ## 0.9.17 - 2026-02-16
 - refactor(mainframe): extract character match helper for filter pass
 
+## 0.9.18 - 2026-02-17
+- perf(mainframe): remove repeated datastore lookups in filter loops
+
