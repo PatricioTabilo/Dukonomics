@@ -61,3 +61,6 @@
 ## 0.9.19 - 2026-02-17
 - docs(readme): add filter UX notes and known limits
 
+## 0.9.20 - 2026-02-18
+- fix(mail): match expired caged pets using species id fallback
+

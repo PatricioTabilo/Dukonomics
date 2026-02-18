@@ -99,7 +99,20 @@ local function ProcessExpiredMail(mail)
     Dukonomics.Data.ReducePostingQuantity(posting, quantity, "expired")
     Dukonomics.Logger.debug("Expired: " .. itemName .. " x" .. quantity)
   else
-    Dukonomics.Logger.debug("❌ No posting for expired: " .. itemName .. " x" .. quantity)
+    -- Fallback matching by species ID
+    local itemLink = mail.itemLink
+    local speciesID = itemLink and tonumber(itemLink:match("item:(%d+)")) -- Assuming species ID can be derived from item link
+    if speciesID then
+      posting = Dukonomics.Data.FindNewestActivePostingBySpeciesID(speciesID, quantity)
+      if posting then
+        Dukonomics.Data.ReducePostingQuantity(posting, quantity, "expired (species ID fallback)")
+        Dukonomics.Logger.debug("Expired (species ID fallback): " .. itemName .. " x" .. quantity)
+      else
+        Dukonomics.Logger.debug("❌ No posting for expired: " .. itemName .. " x" .. quantity)
+      end
+    else
+      Dukonomics.Logger.debug("❌ No posting for expired: " .. itemName .. " x" .. quantity)
+    end
   end
 end
 
