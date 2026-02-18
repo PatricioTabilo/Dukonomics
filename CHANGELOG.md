@@ -64,3 +64,6 @@
 ## 0.9.20 - 2026-02-18
 - fix(mail): match expired caged pets using species id fallback
 
+## 0.9.21 - 2026-02-18
+- chore(automation): heartbeat (no applicable AI task)
+
