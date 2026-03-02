@@ -10,10 +10,18 @@ local function IsAuctionHouseSender(sender)
   return sender == Dukonomics.Loc("Auction House Sender")
 end
 
+local function IsExpiredSubject(subject)
+  return subject and subject:match(expiredPattern) ~= nil
+end
+
+local function IsCancelledSubject(subject)
+  return subject and subject:match(cancelledPattern) ~= nil
+end
+
 local function IsMailCacheable(sender, subject, invoiceType)
   if not IsAuctionHouseSender(sender) then return false end
   if invoiceType then return true end
-  if subject and (subject:match(expiredPattern) or subject:match(cancelledPattern)) then return true end
+  if IsExpiredSubject(subject) or IsCancelledSubject(subject) then return true end
   return false
 end
 
@@ -34,22 +42,6 @@ local function CreateMailData(mailIndex)
   }
 end
 
-local function OnMailInboxUpdate()
-  Dukonomics.Logger.debug("MAIL_INBOX_UPDATE: " .. GetInboxNumItems() .. " mails")
-  Dukonomics.MailCacheRepository:Clear()
-
-  for mailIndex = 1, GetInboxNumItems() do
-    local _, _, sender, subject = GetInboxHeaderInfo(mailIndex)
-    local invoiceType = GetInboxInvoiceInfo(mailIndex)
-
-    if IsMailCacheable(sender, subject, invoiceType) then
-      local mailData = CreateMailData(mailIndex)
-      Dukonomics.Logger.debugTable(mailData, "Mail #" .. mailIndex)
-      Dukonomics.MailCacheRepository:Add(mailIndex, mailData)
-    end
-  end
-end
-
 local function ExtractItemInfo(subject, pattern)
   local itemInfo = subject:match(pattern)
   if not itemInfo then return nil, 1 end
@@ -61,6 +53,38 @@ local function ExtractItemInfo(subject, pattern)
   end
 
   return itemName:match("^%s*(.-)%s*$"), quantity
+end
+
+local function MatchExpiredPosting(itemName, quantity, itemLink)
+  local posting = Dukonomics.Data.FindNewestActivePostingWithQuantity(itemName, quantity)
+  if posting then return posting end
+
+  -- Fallback: match by item ID from item link
+  if itemLink and Dukonomics.Data.FindNewestActivePostingBySpeciesID then
+    local itemID = tonumber(itemLink:match("item:(%d+)"))
+    if itemID then
+      posting = Dukonomics.Data.FindNewestActivePostingBySpeciesID(itemID, quantity)
+    end
+  end
+
+  return posting
+end
+
+-----------------------------------------------------------
+-- Mail processors
+-----------------------------------------------------------
+
+local function ProcessExpiredMail(mail)
+  local itemName, quantity = ExtractItemInfo(mail.subject, expiredPattern)
+  if not itemName then return end
+
+  local posting = MatchExpiredPosting(itemName, quantity, mail.itemLink)
+  if posting then
+    Dukonomics.Data.ReducePostingQuantity(posting, quantity, "expired")
+    Dukonomics.Logger.debug("Expired: " .. itemName .. " x" .. quantity)
+  else
+    Dukonomics.Logger.debug("No posting for expired: " .. itemName .. " x" .. quantity)
+  end
 end
 
 local function ProcessSaleMail(mail)
@@ -87,43 +111,41 @@ local function ProcessPurchaseMail(mail)
   Dukonomics.Logger.debug("Purchase: " .. mail.itemName .. " x" .. mail.count .. " @ " .. mail.unitPrice .. "c/u")
 end
 
-local function ProcessExpiredMail(mail)
-  local itemName, quantity = ExtractItemInfo(mail.subject, "Subasta terminada: (.+)")
-  if not itemName then
-    itemName, quantity = ExtractItemInfo(mail.subject, expiredPattern)
-  end
-  if not itemName then return end
-
-  local posting = Dukonomics.Data.FindNewestActivePostingWithQuantity(itemName, quantity)
-  if posting then
-    Dukonomics.Data.ReducePostingQuantity(posting, quantity, "expired")
-    Dukonomics.Logger.debug("Expired: " .. itemName .. " x" .. quantity)
-  else
-    -- Fallback matching by species ID
-    local itemLink = mail.itemLink
-    local speciesID = itemLink and tonumber(itemLink:match("item:(%d+)")) -- Assuming species ID can be derived from item link
-    if speciesID then
-      posting = Dukonomics.Data.FindNewestActivePostingBySpeciesID(speciesID, quantity)
-      if posting then
-        Dukonomics.Data.ReducePostingQuantity(posting, quantity, "expired (species ID fallback)")
-        Dukonomics.Logger.debug("Expired (species ID fallback): " .. itemName .. " x" .. quantity)
-      else
-        Dukonomics.Logger.debug("❌ No posting for expired: " .. itemName .. " x" .. quantity)
-      end
-    else
-      Dukonomics.Logger.debug("❌ No posting for expired: " .. itemName .. " x" .. quantity)
-    end
-  end
+local function ProcessCancelledMail(mail)
+  Dukonomics.Logger.debug("Cancellation ignored (handled by events)")
 end
 
-local function ProcessCancelledMail(mail)
-  local itemName, quantity = ExtractItemInfo(mail.subject, "Subasta cancelada: (.+)")
-  if not itemName then
-    itemName, quantity = ExtractItemInfo(mail.subject, cancelledPattern)
-  end
-  if not itemName then return end
+-----------------------------------------------------------
+-- Event handlers
+-----------------------------------------------------------
 
-  Dukonomics.Logger.debug("  ⏭️  Cancellation ignored (handled by events)")
+local function OnMailInboxUpdate()
+  Dukonomics.Logger.debug("MAIL_INBOX_UPDATE: " .. GetInboxNumItems() .. " mails")
+  Dukonomics.MailCacheRepository:Clear()
+
+  for mailIndex = 1, GetInboxNumItems() do
+    local _, _, sender, subject = GetInboxHeaderInfo(mailIndex)
+    local invoiceType = GetInboxInvoiceInfo(mailIndex)
+
+    if IsMailCacheable(sender, subject, invoiceType) then
+      local mailData = CreateMailData(mailIndex)
+      Dukonomics.Logger.debugTable(mailData, "Mail #" .. mailIndex)
+      Dukonomics.MailCacheRepository:Add(mailIndex, mailData)
+
+      -- Process expired mails proactively on inbox scan (no need to take the mail)
+      if not invoiceType and IsExpiredSubject(subject) then
+        local itemName, quantity = ExtractItemInfo(subject, expiredPattern)
+        if itemName then
+          local itemLink = GetInboxItemLink(mailIndex, 1)
+          local posting = MatchExpiredPosting(itemName, quantity, itemLink)
+          if posting then
+            Dukonomics.Data.ReducePostingQuantity(posting, quantity, "expired")
+            Dukonomics.Logger.debug("Inbox scan - Expired: " .. itemName .. " x" .. quantity)
+          end
+        end
+      end
+    end
+  end
 end
 
 local function OnCloseInboxItem(mailIndex)
@@ -139,13 +161,17 @@ local function OnCloseInboxItem(mailIndex)
       ProcessPurchaseMail(mail)
     end
   elseif mail.subject then
-    if mail.subject:match(expiredPattern) or mail.subject:match("Subasta terminada") then
+    if IsExpiredSubject(mail.subject) then
       ProcessExpiredMail(mail)
-    elseif mail.subject:match(cancelledPattern) or mail.subject:match("Subasta cancelada") then
+    elseif IsCancelledSubject(mail.subject) then
       ProcessCancelledMail(mail)
     end
   end
 end
+
+-----------------------------------------------------------
+-- Initialization
+-----------------------------------------------------------
 
 function Dukonomics.MailHandler.Initialize()
   Dukonomics.Logger.debug("Initializing MailHandler")
