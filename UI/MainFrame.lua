@@ -67,10 +67,27 @@ local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 closeBtn:SetSize(32, 32)
 closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -2, -2)
 
+-- Toggle Summary Panel button
+local toggleSummaryBtn = CreateFrame("Button", nil, frame)
+toggleSummaryBtn:SetSize(24, 24)
+toggleSummaryBtn:SetPoint("RIGHT", closeBtn, "LEFT", -2, 0)
+toggleSummaryBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+toggleSummaryBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
+toggleSummaryBtn:SetDisabledTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Disabled")
+toggleSummaryBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+toggleSummaryBtn:SetScript("OnEnter", function(self)
+  GameTooltip:SetOwner(self, "ANCHOR_TOP")
+  GameTooltip:SetText("Toggle Ledger", 1, 1, 1)
+  GameTooltip:Show()
+end)
+toggleSummaryBtn:SetScript("OnLeave", function(self)
+  GameTooltip:Hide()
+end)
+
 -- Options button (Gear icon)
 local optionsBtn = CreateFrame("Button", nil, frame)
 optionsBtn:SetSize(20, 20)
-optionsBtn:SetPoint("RIGHT", closeBtn, "LEFT", -2, 0)
+optionsBtn:SetPoint("RIGHT", toggleSummaryBtn, "LEFT", -4, 0)
 optionsBtn:SetNormalTexture("Interface\\WorldMap\\Gear_64")
 optionsBtn:GetNormalTexture():SetTexCoord(0, 0.5, 0, 0.5) -- Use top-left part of the texture
 optionsBtn:GetNormalTexture():SetVertexColor(1, 0.82, 0) -- Gold color to match WoW UI
@@ -109,15 +126,35 @@ filterBar = Dukonomics.UI.FilterBar.Create(filterBarAnchor, function()
   end
 end)
 
--- Summary Bar (at bottom)
-summaryBar = Dukonomics.UI.SummaryBar.Create(frame)
-
--- Data Table (between filters and summary)
+-- Data Table (takes up full width of the main framework!)
 local tableAnchor = CreateFrame("Frame", nil, frame)
 tableAnchor:SetPoint("TOPLEFT", filterBarAnchor, "BOTTOMLEFT", 0, -4)
-tableAnchor:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -6, 42)
+tableAnchor:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -6, 6)
+tableAnchor:SetClipsChildren(true)
+
+-- Summary Panel (Sidecar/Drawer attached OUTSIDE the frame to its right)
+local summaryAnchor = CreateFrame("Frame", nil, frame)
+summaryAnchor:SetWidth(260)
+summaryAnchor:SetPoint("TOPLEFT", frame, "TOPRIGHT", -2, -6)
+summaryAnchor:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT", -2, 6)
+summaryAnchor:Show() -- Shown by default
+
+local isSummaryOpen = true
+toggleSummaryBtn:SetScript("OnClick", function()
+  isSummaryOpen = not isSummaryOpen
+  if isSummaryOpen then
+    summaryAnchor:Show()
+    toggleSummaryBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+    toggleSummaryBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
+  else
+    summaryAnchor:Hide()
+    toggleSummaryBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+    toggleSummaryBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
+  end
+end)
 
 dataTable = Dukonomics.UI.DataTable.Create(tableAnchor)
+summaryBar = Dukonomics.UI.SummaryBar.Create(summaryAnchor)
 
 -----------------------------------------------------------
 -- Data Logic

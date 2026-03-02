@@ -1,153 +1,154 @@
--- Dukonomics: Summary Bar Component
--- Barra de resumen con totales In/Out/Revenue/Profit
+-- Dukonomics: Summary Panel Component
+-- Financial ledger design: minimalistic, elegant, professional.
 
-local COLOR = Dukonomics.UI.Config.COLORS
+local FormatMoney = Dukonomics.UI.Formatting.FormatMoney
 
 Dukonomics.UI = Dukonomics.UI or {}
 Dukonomics.UI.SummaryBar = {}
 
 -----------------------------------------------------------
--- Summary Bar Component
+-- Summary Panel
 -----------------------------------------------------------
 
 function Dukonomics.UI.SummaryBar.Create(parent)
   local self = {}
 
-  -- Main container
+  -- Minimalistic container. Now configured as a Sidecar drawer that floats elegantly.
   local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-  container:SetHeight(32)
-  container:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 6, 6)
-  container:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -6, 6)
+  container:SetAllPoints(parent)
+  container:SetFrameLevel(parent:GetFrameLevel() - 1) -- Float slightly under to meld borders
   container:SetBackdrop({
     bgFile = "Interface\\Buttons\\WHITE8x8",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-    edgeSize = 12,
-    insets = {left = 2, right = 2, top = 2, bottom = 2},
+    edgeSize = 16,
+    insets = {left = 4, right = 4, top = 4, bottom = 4},
   })
-  container:SetBackdropColor(0.15, 0.12, 0.08, 1)
-  container:SetBackdropBorderColor(unpack(COLOR.BORDER))
+  container:SetBackdropColor(0.04, 0.04, 0.04, 0.95)
+  container:SetBackdropBorderColor(0.6, 0.5, 0.35, 1) -- Match Dukonomics.UI.Config.COLORS.BORDER
 
-  -- Money icons
-  local GOLD_ICON = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t"
-  local SILVER_ICON = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t"
-  local COPPER_ICON = "|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:2:0|t"
+  -- Top header area with slightly lighter solid color
+  local headerBg = container:CreateTexture(nil, "BACKGROUND", nil, -1)
+  headerBg:SetPoint("TOPLEFT", 4, -4)
+  headerBg:SetPoint("TOPRIGHT", -4, -4)
+  headerBg:SetHeight(40)
+  headerBg:SetColorTexture(0.08, 0.08, 0.08, 1)
 
-  -- Format money helper
-  local function FormatMoney(copper)
-    if not copper or copper == 0 then return "0" .. COPPER_ICON end
+  -- Title
+  local title = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+  title:SetPoint("CENTER", headerBg, "CENTER", 0, 0)
+  title:SetText("OVERVIEW")
+  title:SetTextColor(0.8, 0.7, 0.5, 1) -- elegant muted gold
 
-    local gold = math.floor(copper / 10000)
-    local silver = math.floor((copper % 10000) / 100)
-    local cop = copper % 100
+  -- Header Separator
+  local sep = container:CreateTexture(nil, "ARTWORK")
+  sep:SetPoint("TOPLEFT", headerBg, "BOTTOMLEFT", 0, 0)
+  sep:SetPoint("TOPRIGHT", headerBg, "BOTTOMRIGHT", 0, 0)
+  sep:SetHeight(1)
+  sep:SetColorTexture(0.2, 0.2, 0.2, 1)
 
-    local parts = {}
-    if gold > 0 then
-      local goldStr = tostring(gold)
-      if gold >= 1000 then
-        goldStr = string.format("%s,%03d", math.floor(gold / 1000), gold % 1000)
-      end
-      table.insert(parts, goldStr .. GOLD_ICON)
+  -- Shared logic for row creation (Ledger format)
+  local ROW_HEIGHT = 44
+  local ROW_GAP = 0
+  local startY = -41 -- below header
+
+  local function CreateMetricRow(index, labelText, defaultColor)
+    local yOff = startY - ((index - 1) * (ROW_HEIGHT + ROW_GAP))
+    
+    local row = CreateFrame("Frame", nil, container)
+    row:SetPoint("TOPLEFT", container, "TOPLEFT", 16, yOff)
+    row:SetPoint("TOPRIGHT", container, "TOPRIGHT", -16, yOff)
+    row:SetHeight(ROW_HEIGHT)
+
+    -- Label (top-left, uppercase, very subtle gray)
+    local label = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    label:SetPoint("TOPLEFT", row, "TOPLEFT", 0, -8)
+    label:SetText(string.upper(labelText))
+    label:SetTextColor(0.5, 0.5, 0.5, 1)
+
+    -- Value (bottom-right, right-aligned)
+    local value = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    value:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, 6)
+    value:SetJustifyH("RIGHT")
+    value:SetText("-")
+    if defaultColor then
+      value:SetTextColor(unpack(defaultColor))
     end
-    if silver > 0 or gold > 0 then
-      table.insert(parts, silver .. SILVER_ICON)
-    end
-    if cop > 0 or (gold == 0 and silver == 0) then
-      table.insert(parts, cop .. COPPER_ICON)
-    end
 
-    return table.concat(parts, " ")
+    -- Bottom line separator
+    local line = row:CreateTexture(nil, "ARTWORK")
+    line:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT", 0, 0)
+    line:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", 0, 0)
+    line:SetHeight(1)
+    line:SetColorTexture(0.1, 0.1, 0.1, 1)
+
+    return value
   end
 
-  -- Create summary labels with better spacing distribution
-  local labels = {}
+  local postedValue    = CreateMetricRow(1, "Posted",     {0.75, 0.75, 0.75})
+  local salesValue     = CreateMetricRow(2, "Sales",      {0.3, 0.85, 0.3})
+  local purchasesValue = CreateMetricRow(3, "Purchases",  {0.85, 0.3, 0.3})
+  
+  -- Net Profit logic below standard rows, with a small vertical gap
+  local totalYOff = startY - (3 * (ROW_HEIGHT + ROW_GAP)) - 10
+  
+  local profitRow = CreateFrame("Frame", nil, container)
+  profitRow:SetPoint("TOPLEFT", container, "TOPLEFT", 16, totalYOff)
+  profitRow:SetPoint("TOPRIGHT", container, "TOPRIGHT", -16, totalYOff)
+  profitRow:SetHeight(70)
+  
+  -- Net Profit Top Separator (indicating a mathematical total)
+  local totalDefLine = profitRow:CreateTexture(nil, "ARTWORK")
+  totalDefLine:SetPoint("TOPLEFT", profitRow, "TOPLEFT", 0, 0)
+  totalDefLine:SetPoint("TOPRIGHT", profitRow, "TOPRIGHT", 0, 0)
+  totalDefLine:SetHeight(1)
+  totalDefLine:SetColorTexture(0.3, 0.3, 0.3, 1)
 
-  -- Posted (potential income from active auctions)
-  local postedLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  postedLabel:SetPoint("LEFT", container, "LEFT", 12, 0)
-  postedLabel:SetText("Posted: ")
-  postedLabel:SetTextColor(0.7, 0.7, 0.7, 1)
+  -- Net Profit Label
+  local profitLabel = profitRow:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  profitLabel:SetPoint("TOPLEFT", profitRow, "TOPLEFT", 0, -16)
+  profitLabel:SetText("NET PROFIT")
+  profitLabel:SetTextColor(0.8, 0.7, 0.5, 1)
 
-  local postedValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  postedValue:SetPoint("LEFT", postedLabel, "RIGHT", 2, 0)
-  postedValue:SetText("0" .. COPPER_ICON)
-  postedValue:SetTextColor(0.6, 0.8, 1, 1) -- Light blue for pending/potential
-
-  -- Sales (completed)
-  local salesLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  salesLabel:SetPoint("LEFT", container, "LEFT", 220, 0)
-  salesLabel:SetText("Sales: ")
-  salesLabel:SetTextColor(0.7, 0.7, 0.7, 1)
-
-  local salesValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  salesValue:SetPoint("LEFT", salesLabel, "RIGHT", 2, 0)
-  salesValue:SetText("0" .. COPPER_ICON)
-  salesValue:SetTextColor(0.4, 0.9, 0.4, 1) -- Green for income
-
-  -- Purchases (money spent buying)
-  local depositsLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  depositsLabel:SetPoint("LEFT", container, "LEFT", 430, 0)
-  depositsLabel:SetText("Purchases: ")
-  depositsLabel:SetTextColor(0.7, 0.7, 0.7, 1)
-
-  local depositsValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  depositsValue:SetPoint("LEFT", depositsLabel, "RIGHT", 2, 0)
-  depositsValue:SetText("0" .. COPPER_ICON)
-  depositsValue:SetTextColor(1, 0.5, 0.5, 1) -- Red for spending
-
-  -- Net Profit (fixed position from right)
-  local profitLabel = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  profitLabel:SetPoint("RIGHT", container, "RIGHT", -200, 0)
-  profitLabel:SetText("Net Profit: ")
-  profitLabel:SetTextColor(0.7, 0.7, 0.7, 1)
-
-  local profitValue = container:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-  profitValue:SetPoint("LEFT", profitLabel, "RIGHT", 2, 0)
-  profitValue:SetText("0" .. COPPER_ICON)
-  profitValue:SetTextColor(unpack(COLOR.GOLD))
+  -- Net Profit Value (Large)
+  local profitValue = profitRow:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+  profitValue:SetPoint("BOTTOMRIGHT", profitRow, "BOTTOMRIGHT", 0, 16)
+  profitValue:SetJustifyH("RIGHT")
+  profitValue:SetText("-")
 
   -----------------------------------------------------------
   -- Public API
   -----------------------------------------------------------
 
   function self:Update(data)
-    local totalPosted = 0      -- Value of active auctions (potential income)
-    local totalSales = 0       -- Total earned from completed sales
-    local totalPurchases = 0   -- Total spent buying items
+    local totalPosted = 0
+    local totalSales = 0
+    local totalPurchases = 0
 
     for _, item in ipairs(data) do
       if item._type == "sale" then
-        -- Active auctions = potential income (Posted)
         if item.status == "active" then
           totalPosted = totalPosted + ((item.price or 0) * (item.count or 1))
-
-        -- Sold = actual income
         elseif item.status == "sold" then
           totalSales = totalSales + ((item.soldPrice or item.price or 0) * (item.count or 1))
         end
-
-      -- Purchases = money spent buying
       elseif item._type == "purchase" then
         totalPurchases = totalPurchases + ((item.price or 0) * (item.count or 1))
       end
     end
 
-    -- Net Profit = Sales - Purchases
     local netProfit = totalSales - totalPurchases
 
-    -- Update display
     postedValue:SetText(FormatMoney(totalPosted))
     salesValue:SetText(FormatMoney(totalSales))
-    depositsValue:SetText(FormatMoney(totalPurchases))
-    profitValue:SetText(FormatMoney(math.abs(netProfit)))
+    purchasesValue:SetText(FormatMoney(totalPurchases))
+    profitValue:SetText(FormatMoney(netProfit))
 
-    -- Color profit based on positive/negative
     if netProfit > 0 then
-      profitValue:SetTextColor(0.4, 0.9, 0.4, 1) -- Green
+      profitValue:SetTextColor(0.3, 0.85, 0.3, 1)  -- soft green
     elseif netProfit < 0 then
-      profitValue:SetText("-" .. FormatMoney(math.abs(netProfit)))
-      profitValue:SetTextColor(1, 0.5, 0.5, 1) -- Red
+      profitValue:SetTextColor(0.85, 0.3, 0.3, 1)  -- soft red
     else
-      profitValue:SetTextColor(0.7, 0.7, 0.7, 1) -- Gray
+      profitValue:SetTextColor(0.5, 0.5, 0.5, 1)   -- neutral gray
     end
   end
 

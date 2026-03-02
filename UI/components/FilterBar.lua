@@ -61,6 +61,22 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   container:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8"})
   container:SetBackdropColor(unpack(COLOR.FILTER_BG))
 
+  -- Forward declarations for dropdown menus so we can close them reliably.
+  local typeMenu, timeMenu, statusMenu, charMenu
+  local statusMenuOpen = false
+  local charMenuOpen = false
+
+  local function HideAllMenus()
+    if typeMenu and typeMenu:IsShown() then typeMenu:Hide() end
+    if timeMenu and timeMenu:IsShown() then timeMenu:Hide() end
+    if statusMenu and statusMenu:IsShown() then statusMenu:Hide() end
+    if charMenu and charMenu:IsShown() then charMenu:Hide() end
+    statusMenuOpen = false
+    charMenuOpen = false
+  end
+
+  container:SetScript("OnHide", HideAllMenus)
+
   -- Active filters container (pills showing what's filtered)
   local activePills = {}
   local pillContainer = CreateFrame("Frame", nil, container)
@@ -107,7 +123,9 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   -- Helper: Create dropdown menu
   -----------------------------------------------------------
 
-  local function CreateDropdownMenu(items, onSelect)
+  local function CreateDropdownMenu(items, onSelect, minButtonWidth)
+    minButtonWidth = minButtonWidth or 140
+
     local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
     menu:SetFrameStrata("DIALOG")
     menu:SetBackdrop({
@@ -120,16 +138,31 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
     menu:SetBackdropBorderColor(0.6, 0.5, 0.35, 1)
     menu:Hide()
 
+    -- Compute menu width from longest label so names never overflow outside the dropdown.
+    local maxLabelWidth = 0
+    local measureText = menu:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    for _, item in ipairs(items) do
+      measureText:SetText(item.label or "")
+      maxLabelWidth = math.max(maxLabelWidth, measureText:GetStringWidth())
+    end
+    measureText:Hide()
+
+    local buttonWidth = math.max(minButtonWidth, math.ceil(maxLabelWidth) + 18)
+
     local buttons = {}
     local yOffset = -4
 
     for i, item in ipairs(items) do
       local btn = CreateFrame("Button", nil, menu, "BackdropTemplate")
-      btn:SetSize(140, 20)
+      btn:SetSize(buttonWidth, 20)
       btn:SetPoint("TOPLEFT", menu, "TOPLEFT", 4, yOffset)
+      btn:SetClipsChildren(true)
 
       local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
       text:SetPoint("LEFT", btn, "LEFT", 8, 0)
+      text:SetWidth(buttonWidth - 16)
+      text:SetJustifyH("LEFT")
+      text:SetTextColor(0.95, 0.95, 0.95, 1)
       text:SetText(item.label)
 
       btn:SetScript("OnEnter", function()
@@ -152,7 +185,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       yOffset = yOffset - 22
     end
 
-    menu:SetSize(148, math.abs(yOffset) + 4)
+    menu:SetSize(buttonWidth + 8, math.abs(yOffset) + 4)
     return menu
   end
 
@@ -206,7 +239,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   timeFilterArrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
   timeFilterArrow:SetTexCoord(0.25, 0.75, 0.25, 0.75)
 
-  local timeMenu = CreateDropdownMenu({
+  timeMenu = CreateDropdownMenu({
     {label = "All Time", value = "all"},
     {label = "Last 24 Hours", value = "24h"},
     {label = "Last 7 Days", value = "7d"},
@@ -224,6 +257,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
     if timeMenu:IsShown() then
       timeMenu:Hide()
     else
+      HideAllMenus()
       timeMenu:SetPoint("TOPLEFT", btn, "BOTTOMLEFT", 0, -2)
       timeMenu:Show()
     end
@@ -254,8 +288,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   statusFilterArrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
   statusFilterArrow:SetTexCoord(0.25, 0.75, 0.25, 0.75)
 
-  local statusMenu = nil
-  local statusMenuOpen = false
+  statusMenu = nil
 
   local function UpdateStatusMenu()
     -- Build menu based on type filter
@@ -303,6 +336,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       end
       statusMenuOpen = false
     else
+      HideAllMenus()
       UpdateStatusMenu()
       statusMenu:SetPoint("TOPLEFT", btn, "BOTTOMLEFT", 0, -2)
       statusMenu:Show()
@@ -314,7 +348,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   -- Setup Type Menu (after status filter is created)
   -----------------------------------------------------------
 
-  local typeMenu = CreateDropdownMenu({
+  typeMenu = CreateDropdownMenu({
     {label = "All", value = "all"},
     {label = "Sales", value = "sales"},
     {label = "Purchases", value = "purchases"},
@@ -349,6 +383,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
     if typeMenu:IsShown() then
       typeMenu:Hide()
     else
+      HideAllMenus()
       typeMenu:SetPoint("TOPLEFT", btn, "BOTTOMLEFT", 0, -2)
       typeMenu:Show()
     end
@@ -359,7 +394,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   -----------------------------------------------------------
 
   local charFilterBtn = CreateFrame("Button", nil, container, "BackdropTemplate")
-  charFilterBtn:SetSize(130, 22)
+  charFilterBtn:SetSize(180, 22)
   charFilterBtn:SetPoint("LEFT", statusFilterBtn, "RIGHT", 8, 0)
   charFilterBtn:SetBackdrop({
     bgFile = "Interface\\Buttons\\WHITE8x8",
@@ -379,8 +414,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
   charFilterArrow:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
   charFilterArrow:SetTexCoord(0.25, 0.75, 0.25, 0.75)
 
-  local charMenu = nil
-  local charMenuOpen = false
+  charMenu = nil
 
   local function UpdateCharacterMenu()
     -- Get unique characters from data
@@ -471,7 +505,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       SaveFilters()
       UpdateFilterPills()
       if onFilterChange then onFilterChange() end
-    end, true) -- true for isMultiSelect
+    end, 220)
   end
 
   charFilterBtn:SetScript("OnClick", function(btn)
@@ -481,6 +515,7 @@ function Dukonomics.UI.FilterBar.Create(parent, onFilterChange)
       end
       charMenuOpen = false
     else
+      HideAllMenus()
       UpdateCharacterMenu()
       charMenu:SetPoint("TOPLEFT", btn, "BOTTOMLEFT", 0, -2)
       charMenu:Show()

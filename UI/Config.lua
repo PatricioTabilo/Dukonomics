@@ -27,23 +27,23 @@ Dukonomics.UI.Config.COLORS = {
 }
 
 Dukonomics.UI.Config.SIZES = {
-  FRAME_WIDTH = 1250,
-  FRAME_HEIGHT = 550,
+  FRAME_WIDTH = 1180,
+  FRAME_HEIGHT = 600,
   ROW_HEIGHT = 28,
-  HEADER_HEIGHT = 28,
+  HEADER_HEIGHT = 30,
   TITLE_HEIGHT = 28,
   FILTER_HEIGHT = 32,
 }
 
 Dukonomics.UI.Config.COLUMNS = {
-  {key = "icon", width = 32},
+  {key = "icon", width = 28},
   {key = "item", name = "Item", width = 250},
-  {key = "qty", name = "Quantity", width = 80, align = "CENTER"},
-  {key = "unitPrice", name = "Unit Price", width = 120, align = "RIGHT"},
-  {key = "total", name = "Total", width = 140, align = "RIGHT"},
-  {key = "status", name = "Status", width = 90, align = "CENTER"},
-  {key = "char", name = "Character", width = 140},
-  {key = "realm", name = "Realm", width = 130},
-  {key = "posted", name = "Posted", width = 120},
-  {key = "expiration", name = "Expiration", width = 120},
+  {key = "qty", name = "Qty", width = 55, align = "CENTER"},
+  {key = "unitPrice", name = "Unit Price", width = 125, align = "RIGHT"},
+  {key = "total", name = "Total", width = 135, align = "RIGHT"},
+  {key = "status", name = "Status", width = 85, align = "CENTER"},
+  {key = "char", name = "Character", width = 120},
+  {key = "realm", name = "Realm", width = 115},
+  {key = "posted", name = "Posted", width = 100},
+  {key = "expiration", name = "Expiration", width = 100},
 }
