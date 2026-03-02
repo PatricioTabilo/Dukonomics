@@ -24,7 +24,7 @@ function Dukonomics.Initialize()
   Dukonomics.DebugMode = Dukonomics.ConfigRepository.IsDebugModeEnabled()
 
   -- Get version from TOC file (C_AddOns.GetAddOnMetadata for modern WoW, fallback to old API)
-  Dukonomics.VERSION = (C_AddOns and C_AddOns.GetAddOnMetadata("Dukonomics", "Version")) or GetAddOnMetadata and GetAddOnMetadata("Dukonomics", "Version") or "0.9.0"
+  Dukonomics.VERSION = (C_AddOns and C_AddOns.GetAddOnMetadata("Dukonomics", "Version")) or GetAddOnMetadata and GetAddOnMetadata("Dukonomics", "Version") or "0.10.1"
 
   -- Show welcome message if enabled
   if Dukonomics.ConfigRepository.IsWelcomeMessageEnabled() then
