@@ -104,12 +104,40 @@ local function GetItemInfoFromLocation(location)
 
   -- Fallback to generic info for non-pet items
   if not itemName or not itemLink then
-    local genericName, genericLink = C_Item.GetItemInfo(itemID)
+    local genericName, genericLink = GetItemInfo(itemID)
     itemName = itemName or genericName
     itemLink = itemLink or genericLink
   end
 
   return itemID, itemLink, itemName, speciesID
+end
+
+-- Retry filling in missing itemLink/itemName asynchronously
+local function RetryItemInfo(posting)
+  if posting.itemLink and posting.itemName then return end
+  local itemID = posting.itemID
+  if not itemID then return end
+
+  local attempts = 0
+  local function TryResolve()
+    attempts = attempts + 1
+    if posting.itemLink and posting.itemName then return end
+    if attempts > 5 then return end
+
+    local name, link = GetItemInfo(itemID)
+    if link then
+      posting.itemLink = posting.itemLink or link
+      posting.itemName = posting.itemName or name
+      Dukonomics.Logger.debug("Retry resolved item: " .. tostring(name))
+      if Dukonomics.UI and Dukonomics.UI.Refresh then
+        Dukonomics.UI.Refresh()
+      end
+    else
+      C_Timer.After(1, TryResolve)
+    end
+  end
+
+  C_Timer.After(0.5, TryResolve)
 end
 
 -- =============================================================================
@@ -369,6 +397,7 @@ local function OnPostItem(location, duration, quantity, bid, buyout)
   }
 
   Dukonomics.Data.AddPosting(posting)
+  RetryItemInfo(posting)
 
   table.insert(pendingLinkQueue, {
     posting = posting,
@@ -413,6 +442,7 @@ local function OnPostCommodity(location, duration, quantity, unitPrice)
   }
 
   Dukonomics.Data.AddPosting(posting)
+  RetryItemInfo(posting)
 
   table.insert(pendingLinkQueue, {
     posting = posting,

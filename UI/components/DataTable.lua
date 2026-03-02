@@ -39,9 +39,13 @@ local function CreateRow(scrollChild)
   -- Hover effect
   row:SetScript("OnEnter", function(self)
     self:SetBackdropColor(unpack(COLOR.ROW_HOVER))
-    if self.data and self.data.itemLink then
+    if self.data then
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      GameTooltip:SetHyperlink(self.data.itemLink)
+      if self.data.itemLink then
+        GameTooltip:SetHyperlink(self.data.itemLink)
+      elseif self.data.itemID then
+        GameTooltip:SetItemByID(self.data.itemID)
+      end
       GameTooltip:Show()
     end
   end)
@@ -135,22 +139,28 @@ function Dukonomics.UI.DataTable.Create(parent)
       -- Icon
       if posting.itemLink then
         row.cells.icon:SetTexture(GetItemIcon(posting.itemLink))
+      elseif posting.speciesID and C_PetJournal and C_PetJournal.GetPetInfoBySpeciesID then
+        local _, speciesIcon = C_PetJournal.GetPetInfoBySpeciesID(posting.speciesID)
+        row.cells.icon:SetTexture(speciesIcon or "Interface\\Icons\\INV_Misc_QuestionMark")
+      elseif posting.itemID then
+        local _, _, _, _, icon = GetItemInfoInstant(posting.itemID)
+        row.cells.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
       else
         row.cells.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
       end
 
       -- Item name with quality color
       local itemName = posting.itemName or "?"
+      local quality
       if posting.itemLink then
-        local _, _, quality = GetItemInfo(posting.itemLink)
-        if quality then
-          local r, g, b = GetItemQualityColor(quality)
-          row.cells.item:SetText(itemName)
-          row.cells.item:SetTextColor(r, g, b)
-        else
-          row.cells.item:SetText(itemName)
-          row.cells.item:SetTextColor(1, 1, 1)
-        end
+        _, _, quality = GetItemInfo(posting.itemLink)
+      elseif posting.itemID then
+        _, _, quality = GetItemInfo(posting.itemID)
+      end
+      if quality then
+        local r, g, b = GetItemQualityColor(quality)
+        row.cells.item:SetText(itemName)
+        row.cells.item:SetTextColor(r, g, b)
       else
         row.cells.item:SetText(itemName)
         row.cells.item:SetTextColor(1, 1, 1)
