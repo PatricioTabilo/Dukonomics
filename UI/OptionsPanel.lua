@@ -2,6 +2,25 @@
 
 Dukonomics.Options = {}
 
+StaticPopupDialogs["DUKONOMICS_WIPE_DATA"] = {
+    text = "Are you sure you want to wipe ALL Dukonomics data?\n\nThis will delete all postings, purchases, and sales history.\nThis action cannot be undone.",
+    button1 = "Wipe All Data",
+    button2 = "Cancel",
+    OnAccept = function()
+        DUKONOMICS_DATA = { postings = {}, purchases = {}, config = { debug = false } }
+        DUKONOMICS_DEBUG_DATA = { postings = {}, purchases = {}, config = { debug = true } }
+        if Dukonomics.UI and Dukonomics.UI.Refresh then
+            Dukonomics.UI.Refresh()
+        end
+        Dukonomics.Logger.print("|cffff6600All data has been wiped.|r")
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    showAlert = true,
+    preferredIndex = 3,
+}
+
 local function CreateOptionsPanel()
     -- Create main panel
     local panel = CreateFrame("Frame", "DukonomicsOptionsPanel", InterfaceOptionsFramePanelContainer)
@@ -35,6 +54,23 @@ local function CreateOptionsPanel()
     cacheInfo:SetText("|cff888888Filter settings will persist across characters and game sessions|r")
     cacheInfo:SetWidth(400)
     cacheInfo:SetJustifyH("LEFT")
+
+    -- Wipe Data Section
+    local dangerTitle = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    dangerTitle:SetPoint("TOPLEFT", cacheInfo, "BOTTOMLEFT", 0, -30)
+    dangerTitle:SetText("|cffff3333Danger Zone|r")
+
+    local wipeBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    wipeBtn:SetSize(160, 26)
+    wipeBtn:SetPoint("TOPLEFT", dangerTitle, "BOTTOMLEFT", 0, -10)
+    wipeBtn:SetText("Wipe All Data")
+    wipeBtn:SetScript("OnClick", function()
+        StaticPopup_Show("DUKONOMICS_WIPE_DATA")
+    end)
+
+    local wipeInfo = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    wipeInfo:SetPoint("LEFT", wipeBtn, "RIGHT", 10, 0)
+    wipeInfo:SetText("|cff888888Permanently deletes all postings, purchases, and sales data|r")
 
     -- Initialize checkbox states
     local function InitializeOptions()
