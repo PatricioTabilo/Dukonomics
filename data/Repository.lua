@@ -210,6 +210,27 @@ function Dukonomics.Data.FindActivePostingsWithQuantity(itemName, minCount)
   return results
 end
 
+function Dukonomics.Data.FindNewestActivePostingBySpeciesID(speciesID, minCount)
+  if not speciesID then return nil end
+  local data = GetDataStore()
+  local newestPosting = nil
+  local newestTimestamp = 0
+
+  for _, posting in ipairs(data.postings) do
+    local timestamp = posting.timestamp or 0
+
+    if posting.status == "active" and
+       posting.speciesID == speciesID and
+       (posting.count or 0) >= (minCount or 1) and
+       timestamp > newestTimestamp then
+      newestPosting = posting
+      newestTimestamp = timestamp
+    end
+  end
+
+  return newestPosting
+end
+
 function Dukonomics.Data.ReducePostingQuantity(posting, quantity, newStatus)
   if not posting or quantity <= 0 then return false end
 

@@ -55,15 +55,33 @@ local function ExtractItemInfo(subject, pattern)
   return itemName:match("^%s*(.-)%s*$"), quantity
 end
 
+local function ResolvePetInfo(link)
+  if not link then return nil, nil end
+  local speciesID = tonumber(link:match("battlepet:(%d+)"))
+  if not speciesID or speciesID == 0 then return nil, nil end
+  local speciesName = C_PetJournal and C_PetJournal.GetPetInfoBySpeciesID and C_PetJournal.GetPetInfoBySpeciesID(speciesID)
+  return speciesID, speciesName
+end
+
 local function MatchExpiredPosting(itemName, quantity, itemLink)
+  -- Try direct name match first
   local posting = Dukonomics.Data.FindNewestActivePostingWithQuantity(itemName, quantity)
   if posting then return posting end
 
-  -- Fallback: match by item ID from item link
-  if itemLink and Dukonomics.Data.FindNewestActivePostingBySpeciesID then
-    local itemID = tonumber(itemLink:match("item:(%d+)"))
-    if itemID then
-      posting = Dukonomics.Data.FindNewestActivePostingBySpeciesID(itemID, quantity)
+  -- Fallback: resolve pet species from battlepet link
+  if itemLink then
+    local speciesID, speciesName = ResolvePetInfo(itemLink)
+
+    -- Try by speciesID
+    if speciesID and Dukonomics.Data.FindNewestActivePostingBySpeciesID then
+      posting = Dukonomics.Data.FindNewestActivePostingBySpeciesID(speciesID, quantity)
+      if posting then return posting end
+    end
+
+    -- Try by resolved pet name (different from subject name)
+    if speciesName and speciesName ~= itemName then
+      posting = Dukonomics.Data.FindNewestActivePostingWithQuantity(speciesName, quantity)
+      if posting then return posting end
     end
   end
 
@@ -97,12 +115,21 @@ local function ProcessSaleMail(mail)
 end
 
 local function ProcessPurchaseMail(mail)
-  local itemID = mail.itemLink and tonumber(mail.itemLink:match("item:(%d+)"))
+  local itemID, speciesID
+  if mail.itemLink then
+    -- Handle both regular items and battle pets
+    itemID = tonumber(mail.itemLink:match("item:(%d+)"))
+    if not itemID then
+      speciesID = tonumber(mail.itemLink:match("battlepet:(%d+)"))
+      if speciesID then itemID = 82800 end -- Pet Cage base item ID
+    end
+  end
 
   Dukonomics.Data.AddPurchase({
     itemID = itemID,
     itemLink = mail.itemLink,
     itemName = mail.itemName,
+    speciesID = speciesID,
     price = mail.unitPrice,
     count = mail.count,
     timestamp = time()

@@ -81,12 +81,35 @@ local function IsAuctionIDLinked(auctionID)
   return false
 end
 
+local function ResolvePetInfo(link)
+  if not link then return nil, nil end
+  local speciesID = tonumber(link:match("battlepet:(%d+)"))
+  if not speciesID or speciesID == 0 then return nil, nil end
+  local speciesName = C_PetJournal.GetPetInfoBySpeciesID(speciesID)
+  return speciesID, speciesName
+end
+
 local function GetItemInfoFromLocation(location)
   if not location then return nil end
   local itemID = C_Item.GetItemID(location)
   if not itemID then return nil end
-  local itemName, itemLink = C_Item.GetItemInfo(itemID)
-  return itemID, itemLink, itemName
+
+  -- Use location-specific API for pet cages (returns battlepet: link)
+  local itemLink = C_Item.GetItemLink(location)
+  local itemName, speciesID
+
+  if itemLink then
+    speciesID, itemName = ResolvePetInfo(itemLink)
+  end
+
+  -- Fallback to generic info for non-pet items
+  if not itemName or not itemLink then
+    local genericName, genericLink = C_Item.GetItemInfo(itemID)
+    itemName = itemName or genericName
+    itemLink = itemLink or genericLink
+  end
+
+  return itemID, itemLink, itemName, speciesID
 end
 
 -- =============================================================================
@@ -282,9 +305,20 @@ local function OnOwnedAuctionsUpdated()
       local quantity = auctionInfo.quantity or 1
       local unitPrice, totalPrice = InferPricesForAuction(auctionInfo)
 
+      -- Resolve real pet name from battlePetSpeciesID or itemLink
+      local speciesID = auctionInfo.itemKey and auctionInfo.itemKey.battlePetSpeciesID
+      if speciesID and speciesID > 0 then
+        local speciesName = C_PetJournal.GetPetInfoBySpeciesID(speciesID)
+        if speciesName then itemName = speciesName end
+      elseif auctionInfo.itemLink then
+        local sid, sname = ResolvePetInfo(auctionInfo.itemLink)
+        if sname then itemName = sname; speciesID = sid end
+      end
+
       ownedAuctionsCache[auctionID] = {
         itemID = itemID,
         itemName = itemName,
+        speciesID = speciesID,
         quantity = quantity,
         buyoutAmount = auctionInfo.buyoutAmount,
         bidAmount = auctionInfo.bidAmount,
@@ -309,7 +343,7 @@ local function OnOwnedAuctionsUpdated()
 end
 
 local function OnPostItem(location, duration, quantity, bid, buyout)
-  local itemID, itemLink, itemName = GetItemInfoFromLocation(location)
+  local itemID, itemLink, itemName, speciesID = GetItemInfoFromLocation(location)
   if not itemID then return end
 
   local deposit = C_AuctionHouse.CalculateItemDeposit(location, duration, quantity)
@@ -321,6 +355,7 @@ local function OnPostItem(location, duration, quantity, bid, buyout)
     itemID = itemID,
     itemLink = itemLink,
     itemName = itemName,
+    speciesID = speciesID,
     buyout = buyout,
     bid = bid,
     count = quantity,
@@ -340,6 +375,7 @@ local function OnPostItem(location, duration, quantity, bid, buyout)
     postingSeq = postingSeq,
     itemID = itemID,
     itemName = NormalizeName(itemName),
+    speciesID = speciesID,
     quantity = quantity,
     unitPrice = unitPrice,
     totalPrice = rawPrice,
@@ -353,7 +389,7 @@ local function OnPostItem(location, duration, quantity, bid, buyout)
 end
 
 local function OnPostCommodity(location, duration, quantity, unitPrice)
-  local itemID, itemLink, itemName = GetItemInfoFromLocation(location)
+  local itemID, itemLink, itemName, speciesID = GetItemInfoFromLocation(location)
   if not itemID then return end
 
   local deposit = C_AuctionHouse.CalculateCommodityDeposit(itemID, duration, quantity)
