@@ -40,13 +40,18 @@ local function CreateRow(scrollChild)
   row:SetScript("OnEnter", function(self)
     self:SetBackdropColor(unpack(COLOR.ROW_HOVER))
     if self.data then
-      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-      if self.data.itemLink then
-        GameTooltip:SetHyperlink(self.data.itemLink)
-      elseif self.data.itemID then
-        GameTooltip:SetItemByID(self.data.itemID)
+      local link = self.data.itemLink
+      if link and link:match("battlepet:") then
+        BattlePetToolTip_ShowLink(link)
+      else
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if link then
+          GameTooltip:SetHyperlink(link)
+        elseif self.data.itemID then
+          GameTooltip:SetItemByID(self.data.itemID)
+        end
+        GameTooltip:Show()
       end
-      GameTooltip:Show()
     end
   end)
 
@@ -58,6 +63,7 @@ local function CreateRow(scrollChild)
       self:SetBackdropColor(unpack(COLOR.ROW_ODD))
     end
     GameTooltip:Hide()
+    if BattlePetTooltip then BattlePetTooltip:Hide() end
   end)
 
   return row
@@ -136,12 +142,19 @@ function Dukonomics.UI.DataTable.Create(parent)
         row:SetBackdropColor(unpack(COLOR.ROW_ODD))
       end
 
+      -- Resolve pet info from battlepet link or speciesID
+      local petSpeciesID = posting.speciesID
+      if not petSpeciesID and posting.itemLink then
+        petSpeciesID = tonumber(posting.itemLink:match("battlepet:(%d+)"))
+      end
+      local isBattlePet = petSpeciesID and petSpeciesID > 0
+
       -- Icon
-      if posting.itemLink then
-        row.cells.icon:SetTexture(GetItemIcon(posting.itemLink))
-      elseif posting.speciesID and C_PetJournal and C_PetJournal.GetPetInfoBySpeciesID then
-        local _, speciesIcon = C_PetJournal.GetPetInfoBySpeciesID(posting.speciesID)
+      if isBattlePet then
+        local _, speciesIcon = C_PetJournal.GetPetInfoBySpeciesID(petSpeciesID)
         row.cells.icon:SetTexture(speciesIcon or "Interface\\Icons\\INV_Misc_QuestionMark")
+      elseif posting.itemLink then
+        row.cells.icon:SetTexture(GetItemIcon(posting.itemLink))
       elseif posting.itemID then
         local _, _, _, _, icon = GetItemInfoInstant(posting.itemID)
         row.cells.icon:SetTexture(icon or "Interface\\Icons\\INV_Misc_QuestionMark")
@@ -152,7 +165,11 @@ function Dukonomics.UI.DataTable.Create(parent)
       -- Item name with quality color
       local itemName = posting.itemName or "?"
       local quality
-      if posting.itemLink then
+      if isBattlePet then
+        -- Quality is the 4th field in battlepet link: battlepet:speciesID:level:quality:...
+        local petQuality = posting.itemLink and tonumber(posting.itemLink:match("battlepet:%d+:%d+:(%d+)"))
+        quality = petQuality
+      elseif posting.itemLink then
         _, _, quality = GetItemInfo(posting.itemLink)
       elseif posting.itemID then
         _, _, quality = GetItemInfo(posting.itemID)
