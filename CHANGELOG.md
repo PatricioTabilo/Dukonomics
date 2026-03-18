@@ -229,3 +229,6 @@
 ## 0.10.31 - 2026-03-17
 - chore(automation): heartbeat (no applicable AI task)
 
+## 0.10.32 - 2026-03-18
+- chore(automation): heartbeat (no applicable AI task)
+
