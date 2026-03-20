@@ -19,24 +19,28 @@ Dukonomics.L["Left Click"] = {
   ["enUS"] = "Left Click",
   ["esES"] = "Clic Izquierdo",
   ["esMX"] = "Clic Izquierdo",
+  ["ruRU"] = "ЛКМ",
 }
 
 Dukonomics.L["Right Click"] = {
   ["enUS"] = "Right Click",
   ["esES"] = "Clic Derecho",
   ["esMX"] = "Clic Derecho",
+  ["ruRU"] = "ПКМ",  
 }
 
 Dukonomics.L["Open Main Window"] = {
   ["enUS"] = "Open Main Window",
   ["esES"] = "Abrir Ventana Principal",
   ["esMX"] = "Abrir Ventana Principal",
+  ["ruRU"] = "Открыть главное окно",  
 }
 
 Dukonomics.L["Options"] = {
   ["enUS"] = "Options",
   ["esES"] = "Opciones",
   ["esMX"] = "Opciones",
+  ["ruRU"] = "Настройки",  
 }
 
 function Dukonomics.Loc(key)
